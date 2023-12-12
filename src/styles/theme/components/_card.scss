@@ -1,0 +1,15 @@
+//
+// Extended from bootstrap
+//
+// card
+
+
+.card{
+    box-shadow: $smooth-shadow-sm;
+    border: 0px;
+    border-radius: $border-radius-lg;
+}
+
+.card-header-bg-gray {
+    background-color: $gray-300;
+}
