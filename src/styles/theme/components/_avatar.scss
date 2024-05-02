@@ -1,92 +1,92 @@
 // Avatar
 .avatar {
-    position: relative;
-    display: inline-block;
-    width: 3rem;
-    height: 3rem;
+  position: relative;
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
 }
 
 // Avatar Size
 .avatar-xs {
-    width: $avatar-size-xs;
-    height: $avatar-size-xs;
+  width: $avatar-size-xs;
+  height: $avatar-size-xs;
 }
 
 .avatar-sm {
-    width: $avatar-size-sm;
-    height: $avatar-size-sm;
+  width: $avatar-size-sm;
+  height: $avatar-size-sm;
 }
 
 .avatar-md {
-    width: $avatar-size-md;
-    height: $avatar-size-md;
+  width: $avatar-size-md;
+  height: $avatar-size-md;
 }
 
 .avatar-lg {
-    width: $avatar-size-lg;
-    height: $avatar-size-lg;
+  width: $avatar-size-lg;
+  height: $avatar-size-lg;
 }
 
 .avatar-xl {
-    width: $avatar-size-xl;
-    height: $avatar-size-xl;
+  width: $avatar-size-xl;
+  height: $avatar-size-xl;
 }
 
 .avatar-xxl {
-    width: $avatar-size-xxl;
-    height: $avatar-size-xxl;
+  width: $avatar-size-xxl;
+  height: $avatar-size-xxl;
 }
 
 // Avatar img
 .avatar img {
-    width: 100%;
-    height: 100%;
-    -o-object-fit: cover;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+  object-fit: cover;
 }
 
 .avatar-indicators {
-    position: relative;
+  position: relative;
 }
 
 .avatar-indicators:before {
-    content: "";
-    position: absolute;
-    bottom: 0px;
-    right: 5%;
-    width: 30%;
-    height: 30%;
-    border-radius: 50%;
-    border: 2px solid $white;
-    display: table;
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  right: 5%;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  border: 2px solid $white;
+  display: table;
 }
 
 .avatar-xxl.avatar-indicators:before {
-    bottom: 5px;
-    right: 17%;
-    width: 16%;
-    height: 16%;
+  bottom: 5px;
+  right: 17%;
+  width: 16%;
+  height: 16%;
 }
 
 // Avatar indicators
 .avatar-offline:before {
-    background-color: $gray-400;
+  background-color: $gray-400;
 }
 
 .avatar-online:before {
-    background-color: $success;
+  background-color: $success;
 }
 
 .avatar-away:before {
-    background-color: $warning;
+  background-color: $warning;
 }
 
 .avatar-busy:before {
-    background-color: $danger;
+  background-color: $danger;
 }
 
 .avatar-info:before {
-    background-color: $info;
+  background-color: $info;
 }
 
 // Avatar intials
@@ -137,20 +137,19 @@
   background-color: $dark;
 }
 
-
 // Avatar Group
-.avatar-group .avatar+.avatar {
-    margin-left: -1.2rem;
+.avatar-group .avatar + .avatar {
+  margin-left: -1.2rem;
 }
 
 .avatar-group .avatar:hover {
-    z-index: 2;
+  z-index: 2;
 }
 
 // Avatar border
 .avatar-group img,
 .avatar-group .avatar .avatar-initials {
-    border: 2px solid $white;
+  border: 2px solid $white;
 }
 
 // Image aspect ratio 4:3

@@ -1,44 +1,62 @@
-"use client";
+'use client'
+
+import {useAppContext} from 'provider/AppProvider'
+import React, { useEffect, useState } from 'react'
+import useSWR from 'swr'
+import { fetcher } from 'app/_helpers'
+import axios from "axios";
 
 // import node module libraries
-import { Col, Row, Form, Card } from "react-bootstrap";
+import { Col, Row, Form, Card, ListGroup } from 'react-bootstrap'
 
 // import widget as custom components
-import { FormSelect } from "widgets";
+import { FormSelect } from 'widgets'
 
 const ModelType = () => {
-  const modelTypeOptions = [
-    { value: "DEFAULT", label: "Select Model" },
-    { value: "BERTopic", label: "BERTopic" },
-    { value: "LDA", label: "LDA" },
-    { value: "Model3", label: "Model3" },
-    { value: "Model4", label: "Model4" },
-  ];
+
+  const {modelType} = useAppContext()
+
+  // const [modelTypeOptions, setModelTypeOptions] = useState([{ value: 'DEFAULT', label: 'Select Model' }])
+  // const { data, error, isLoading } = useSWR(`/api`, fetcher)
+  // useEffect(() => {
+  //   if (data) {
+  //     console.log("======>>>>>>>>>>", data.result)
+  //     setModelTypeOptions(data.result)
+  //   }
+  // }, [data, isLoading])
+  // if (error) return [{ value: 'DEFAULT', label: 'Select Model' }]
+  // if (isLoading) return [{ value: 'DEFAULT', label: 'Select Model' }]
+  // if (!data) return [{ value: 'DEFAULT', label: 'Select Model' }]
 
   return (
-    <Row className="mt-4">
+    <Row className='mt-4'>
       <Col md={12} xs={12}>
         <Card>
-          <Card.Header className="py-4 card-header-bg-gray">
-            <h4 className="mb-0">Select a Topic Model</h4>
+          <Card.Header className='py-4 card-header-bg-gray'>
+            <h4 className='mb-0'>Topic Model</h4>
           </Card.Header>
           <Card.Body>
             <Card.Title>List of available model types:</Card.Title>
             <Card.Text>
               <Col md={12} xs={12}>
-                <Form.Control
+                {/* <Form.Control
                   as={FormSelect}
-                  id="modelType"
-                  options={modelTypeOptions}
-                  defaultselected="DEFAULT"
-                />
+                  id='modelType'
+                  options={modelType}
+                  defaultselected='DEFAULT'
+                /> */}
+                <ListGroup>
+                  {modelType.map((item, index) => {
+                    return <ListGroup.Item variant={item.bgcolor}>{item.label}</ListGroup.Item>
+                  })}
+                </ListGroup>
               </Col>
             </Card.Text>
           </Card.Body>
         </Card>
       </Col>
     </Row>
-  );
-};
+  )
+}
 
-export default ModelType;
+export default ModelType

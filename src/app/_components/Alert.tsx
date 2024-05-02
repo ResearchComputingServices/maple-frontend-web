@@ -1,32 +1,36 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
-import { useAlertService } from 'app/_services';
+import { useAlertService } from 'app/_services'
 
-export { Alert };
+export { Alert }
 
 function Alert() {
-    const pathname = usePathname();
-    const alertService = useAlertService();
-    const alert = alertService.alert;
-    
-    useEffect(() => {
-        // clear alert on location change
-        alertService.clear();
-    }, [pathname]);
+  const pathname = usePathname()
+  const alertService = useAlertService()
+  const alert = alertService.alert
 
-    if (!alert) return null;
+  useEffect(() => {
+    // clear alert on location change
+    alertService.clear()
+  }, [pathname])
 
-    return (
-        <div className="container">
-            <div className="m-3">
-                <div className={`alert alert-dismissible ${alert.type}`}>
-                    {alert.message}
-                    <button type="button" className="btn-close" onClick={alertService.clear}></button>
-                </div>
-            </div>
+  if (!alert) return null
+
+  return (
+    <div className='container'>
+      <div className='m-3'>
+        <div className={`alert alert-dismissible ${alert.type}`}>
+          {alert.message}
+          <button
+            type='button'
+            className='btn-close'
+            onClick={alertService.clear}
+          ></button>
         </div>
-    );
+      </div>
+    </div>
+  )
 }
