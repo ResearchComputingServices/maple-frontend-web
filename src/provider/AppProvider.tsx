@@ -219,16 +219,21 @@ export default function AppProvider({ children }: ReactChildren) {
         const data = await response.json()
         newData['alldots'] = [];
         for (const key in data.result) {
-          newData['alldots'].push({
-            xPos: data.result[key]['position'][0],
-            yPos: data.result[key]['position'][1],
-            color: '#999999'
-          })
+          // newData['alldots'].push({
+          //   xPos: data.result[key]['position'][0],
+          //   yPos: data.result[key]['position'][1],
+          //   color: '#999999'
+          // })
 
           if(!newData.hasOwnProperty(data.result[key]['topic_level1']['uuid'])){
             newData[data.result[key]['topic_level1']['uuid']] = [];
           }
           newData[data.result[key]['topic_level1']['uuid']].push({
+            xPos: data.result[key]['position'][0],
+            yPos: data.result[key]['position'][1],
+            color: '#'+data.result[key]['topic_level1']['uuid'].substring(0, 6)
+          })
+          newData['alldots'].push({
             xPos: data.result[key]['position'][0],
             yPos: data.result[key]['position'][1],
             color: '#'+data.result[key]['topic_level1']['uuid'].substring(0, 6)
@@ -241,10 +246,20 @@ export default function AppProvider({ children }: ReactChildren) {
             yPos: data.result[key]['position'][1],
             color: '#'+data.result[key]['topic_level2']['uuid'].substring(0, 6)
           })
+          newData['alldots'].push({
+            xPos: data.result[key]['position'][0],
+            yPos: data.result[key]['position'][1],
+            color: '#'+data.result[key]['topic_level2']['uuid'].substring(0, 6)
+          })
           if(!newData.hasOwnProperty(data.result[key]['topic_level3']['uuid'])){
             newData[data.result[key]['topic_level3']['uuid']] = [];
           }
           newData[data.result[key]['topic_level3']['uuid']].push({
+            xPos: data.result[key]['position'][0],
+            yPos: data.result[key]['position'][1],
+            color: '#'+data.result[key]['topic_level3']['uuid'].substring(0, 6)
+          })
+          newData['alldots'].push({
             xPos: data.result[key]['position'][0],
             yPos: data.result[key]['position'][1],
             color: '#'+data.result[key]['topic_level3']['uuid'].substring(0, 6)

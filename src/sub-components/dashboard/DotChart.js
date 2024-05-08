@@ -73,6 +73,7 @@ const DotChart = ({ width, height }) => {
         .style('fill', function (d) {
           return d.color
         })
+        .style('opacity', 0.2)
 
       // Add dots
       svg
