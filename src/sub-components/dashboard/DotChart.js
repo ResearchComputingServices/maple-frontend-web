@@ -15,21 +15,21 @@ const DotChart = ({ width, height }) => {
 
   useEffect(() => {
     draw()
-    console.log('>>>>>>>>>>>>>>>>dotChart', dotChart)
+    // console.log('>>>>>>>>>>>>>>>>dotChart', dotChart)
   })
 
   const draw = () => {
     // set the dimensions and margins of the graph
-    const margin = { top: 20, right: 30, bottom: 30, left: 100 },
-      width = 600,
+    const margin = { top: 30, right: 30, bottom: 30, left: 50 },
+      width = 1100,
       height = 400
     // append the svg object to the body of the page
     const svg = d3.select(ref.current)
       svg.selectAll('*').remove()
       svg
       .append('svg')
-      .attr('width', width )
-      .attr('height', height )
+      .attr('width', width + margin.left + margin.right )
+      .attr('height', height + margin.top + margin.bottom )
       .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
@@ -38,23 +38,40 @@ const DotChart = ({ width, height }) => {
       // Add X axis
       const x = d3.scaleLinear()
       .range([0, width])
-      .domain(d3.extent(allDots, function (d) {
-        return d.xPos;
-      }));
+      .domain([
+        d3.min(allDots, function (d) {return d.xPos}) -1, 
+        d3.max(allDots, function (d) {return d.xPos;}) +1
+      ]);
       svg
         .append('g')
         .attr('class', 'myXaxis') // Note that here we give a class to the X axis, to be able to call it later and modify it
         .attr('transform', `translate(0, ${height})`)
         .call(d3.axisBottom(x))
         .attr('opacity', '1')
+      svg
+        .append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
+        .style("text-anchor", "middle")
+        .text("Value");
 
       // Add Y axis
       const y = d3.scaleLinear()
       .range([height, 0])
-      .domain([0, d3.max(allDots, function (d) {
-        return d.yPos;
-      })]);
-      svg.append('g').call(d3.axisRight(y))
+      .domain([
+        d3.min(allDots, function (d) {return d.yPos}) -2, 
+        d3.max(allDots, function (d) {return d.yPos;}) +1
+      ]);
+      svg
+        .append('g')
+        .call(d3.axisRight(y))
+      svg
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Value");
 
       // Add dots
       svg
@@ -69,11 +86,11 @@ const DotChart = ({ width, height }) => {
         .attr('cy', function (d) {
           return y(d.yPos)
         })
-        .attr('r', 4)
+        .attr('r', 3)
         .style('fill', function (d) {
           return d.color
         })
-        .style('opacity', 0.2)
+        .style('opacity', 0.15)
 
       // Add dots
       svg
@@ -89,6 +106,8 @@ const DotChart = ({ width, height }) => {
           return y(d.yPos)
         })
         .attr('r', 4)
+        .attr("stroke", "#000")
+        .attr("stroke-width", 1)
         .style('fill', function (d) {
           return d.color
         })
@@ -100,11 +119,11 @@ const DotChart = ({ width, height }) => {
       <Col md={12} xs={12}>
         <Card>
           <Card.Header className='py-4 card-header-bg-gray'>
-            <h4 className='mb-0'>Scattered Plot</h4>
+            <h4 className='mb-0'>Topic Analysis</h4>
           </Card.Header>
           <Card.Body>
-            <Col md={12} xs={12}>
-              <h3>Plot</h3>
+            <Col md={12} xs={12} className='m-4'>
+              {/* <h3>Plot</h3> */}
               {/* <Image
                 src='/images/layouts/dotchart.png'
                 alt=''

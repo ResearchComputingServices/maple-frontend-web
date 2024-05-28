@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   }
   console.log(">> app-api-processed-sanitizedUuid:", sanitizedUuid)
 
-  const res = await fetch(process.env.PATH_URL_BACKEND_REMOTE + `/processed?modelIteration=${sanitizedUuid}&limit=1000&skip=0`, {
+  const res = await fetch(process.env.PATH_URL_BACKEND_REMOTE + `/processed?modelIteration=${sanitizedUuid}&limit=10000&skip=0`, {
     headers: {
       'Content-Type': 'application/json',
     },

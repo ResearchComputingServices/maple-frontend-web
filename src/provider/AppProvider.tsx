@@ -2,7 +2,6 @@
 
 import { AppContextProps, ReactChildren } from 'app/_types'
 import { createContext, useContext, useEffect, useState, useRef } from 'react'
-import * as d3 from 'd3'
 
 // ==========================
 // ==== DEV EXPERIMENTAL ====
@@ -23,30 +22,14 @@ function _getRandomStr(length: any) {
   return result;
 }
 
-async function _getChartData() {
-  d3.csv(
-    'https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/2_TwoNum.csv',
-  ).then(function (data) {
-    console.log(data)
-    return data;
-  })
-}
+// ==== DEV EXPERIMENTAL ====
+// ==========================
 
 async function _delay(t: any) {
   return new Promise(res => {
     setTimeout(res, t)
   })
 }
-
-let dotChartData = [{ country: "USA", gold: 10, silver: 20 },
-{ country: "China", gold: 20, silver: 100 },
-{ country: "India", gold: 200, silver: 50 },
-{ country: "Russia", gold: 25, silver: 80 },
-{ country: "Germany", gold: 10, silver: 200 },
-{ country: "UK", gold: 150, silver: 75 },
-{ country: "France", gold: 10, silver: 70 },
-{ country: "UAE", gold: 30, silver: 150 },
-{ country: "Canada", gold: 100, silver: 15 }]
 
 function _preFormatChartData(datum: any) {
   const _chartData: any = [];
@@ -56,32 +39,14 @@ function _preFormatChartData(datum: any) {
   return _chartData;
 }
 
-// const useRecursiveTimeout = (callback : any, delay = 5000) => {
-//   const ref = useRef();
-
-//   useEffect(() => {
-//     ref.current = callback;
-//   });
-
-//   useEffect(() => {
-//     const tick = () => {
-//       const ret = ref.current();
-
-//       const nextDelay = 5000;
-//       if (!ret) {
-//         setTimeout(tick, nextDelay);
-//       } else if (ret.constructor === Promise) {
-//         ret.then(() => setTimeout(tick, nextDelay));
-//       }
-//     };
-
-//     const timer = setTimeout(tick, delay);
-
-//     return () => clearTimeout(timer);
-//   }, [delay]);
-// };
-// ==== DEV EXPERIMENTAL ====
-// ==========================
+function _preFormatTopicSummarytData(datum: any) {
+  let _topicSummaryData: any = '<ul>';
+  datum.forEach((element: any, index: any) => {
+    _topicSummaryData += '<li>' + element + '</li>'
+  });
+  _topicSummaryData += '</ul>';
+  return _topicSummaryData;
+}
 
 // Create the context
 export const AppContext = createContext({} as AppContextProps)
@@ -146,7 +111,7 @@ export default function AppProvider({ children }: ReactChildren) {
           value: data.result[0]['uuid'],
           bgcolor: 'light'
         }
-        console.log(">> appprovider-modeliteration:", newData)
+        // console.log(">> appprovider-modeliteration:", newData)
         // setModelIteration(newData)
         return newData
       } catch (error) {
@@ -161,42 +126,43 @@ export default function AppProvider({ children }: ReactChildren) {
         const response = await fetch(`/api/topiclist/?uuid=${uid}`)
         const data = await response.json()
         for (const key1 in data['result']) {
-          console.log('key1', key1)
+          // console.log('key1', key1)
 
-          newData['model_level1'] = [];
-          for (const key2 in data['result'][key1]['model_level1']['topic']) {
-            console.log('model_level1 key2', key2)
-            newData['model_level1'].push({
-              uuid: data['result'][key1]['model_level1']['topic'][key2]['uuid'],
-              label: 'Level1_' + data['result'][key1]['model_level1']['topic'][key2]['label'],
-              value: data['result'][key1]['model_level1']['topic'][key2]['name'],
-              summary: data['result'][key1]['model_level1']['topic'][key2]['dot_summary'].join(', '),
-              bgcolor: 'light',
-              chart: _preFormatChartData(data['result'][key1]['model_level1']['topic'][key2]['chart']['over_time']['1D'])
-            })
-          }
+          // newData['model_level1'] = [];
+          // for (const key2 in data['result'][key1]['model_level1']['topic']) {
+          //   console.log('model_level1 key2', key2)
+          //   newData['model_level1'].push({
+          //     uuid: data['result'][key1]['model_level1']['topic'][key2]['uuid'],
+          //     label: 'Level1_' + data['result'][key1]['model_level1']['topic'][key2]['label'],
+          //     value: data['result'][key1]['model_level1']['topic'][key2]['name'],
+          //     summary: data['result'][key1]['model_level1']['topic'][key2]['dot_summary'].join(', '),
+          //     bgcolor: 'light',
+          //     chart: _preFormatChartData(data['result'][key1]['model_level1']['topic'][key2]['chart']['over_time']['1D'])
+          //   })
+          // }
 
-          newData['model_level2'] = [];
-          for (const key3 in data['result'][key1]['model_level2']['topic']) {
-            console.log('model_level2 key3', key3)
-            newData['model_level2'].push({
-              uuid: data['result'][key1]['model_level2']['topic'][key3]['uuid'],
-              label: 'Level2_' + data['result'][key1]['model_level2']['topic'][key3]['label'],
-              value: data['result'][key1]['model_level2']['topic'][key3]['name'],
-              summary: data['result'][key1]['model_level2']['topic'][key3]['dot_summary'].join(', '),
-              bgcolor: 'light',
-              chart: _preFormatChartData(data['result'][key1]['model_level2']['topic'][key3]['chart']['over_time']['1D'])
-            })
-          }
+          // newData['model_level2'] = [];
+          // for (const key3 in data['result'][key1]['model_level2']['topic']) {
+          //   console.log('model_level2 key3', key3)
+          //   newData['model_level2'].push({
+          //     uuid: data['result'][key1]['model_level2']['topic'][key3]['uuid'],
+          //     label: 'Level2_' + data['result'][key1]['model_level2']['topic'][key3]['label'],
+          //     value: data['result'][key1]['model_level2']['topic'][key3]['name'],
+          //     summary: data['result'][key1]['model_level2']['topic'][key3]['dot_summary'].join(', '),
+          //     bgcolor: 'light',
+          //     chart: _preFormatChartData(data['result'][key1]['model_level2']['topic'][key3]['chart']['over_time']['1D'])
+          //   })
+          // }
 
           newData['model_level3'] = [];
           for (const key4 in data.result[key1]['model_level3']['topic']) {
-            console.log('model_level3 key4', key4)
+            // console.log('model_level3 key4', key4)
             newData['model_level3'].push({
               uuid: data['result'][key1]['model_level3']['topic'][key4]['uuid'],
-              label: 'Level3_' + data.result[key1]['model_level3']['topic'][key4]['label'],
+              label: data.result[key1]['model_level3']['topic'][key4]['label'],
               value: data.result[key1]['model_level3']['topic'][key4]['name'],
-              summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'].join(', '),
+              // summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'].join(', '),
+              summary: _preFormatTopicSummarytData(data.result[key1]['model_level3']['topic'][key4]['dot_summary']),
               bgcolor: 'light',
               chart: _preFormatChartData(data['result'][key1]['model_level3']['topic'][key4]['chart']['over_time']['1D'])
             })
@@ -225,47 +191,49 @@ export default function AppProvider({ children }: ReactChildren) {
           //   color: '#999999'
           // })
 
-          if(!newData.hasOwnProperty(data.result[key]['topic_level1']['uuid'])){
-            newData[data.result[key]['topic_level1']['uuid']] = [];
-          }
-          newData[data.result[key]['topic_level1']['uuid']].push({
-            xPos: data.result[key]['position'][0],
-            yPos: data.result[key]['position'][1],
-            color: '#'+data.result[key]['topic_level1']['uuid'].substring(0, 6)
-          })
-          newData['alldots'].push({
-            xPos: data.result[key]['position'][0],
-            yPos: data.result[key]['position'][1],
-            color: '#'+data.result[key]['topic_level1']['uuid'].substring(0, 6)
-          })
-          if(!newData.hasOwnProperty(data.result[key]['topic_level2']['uuid'])){
-            newData[data.result[key]['topic_level2']['uuid']] = [];
-          }
-          newData[data.result[key]['topic_level2']['uuid']].push({
-            xPos: data.result[key]['position'][0],
-            yPos: data.result[key]['position'][1],
-            color: '#'+data.result[key]['topic_level2']['uuid'].substring(0, 6)
-          })
-          newData['alldots'].push({
-            xPos: data.result[key]['position'][0],
-            yPos: data.result[key]['position'][1],
-            color: '#'+data.result[key]['topic_level2']['uuid'].substring(0, 6)
-          })
-          if(!newData.hasOwnProperty(data.result[key]['topic_level3']['uuid'])){
+          // if (!newData.hasOwnProperty(data.result[key]['topic_level1']['uuid'])) {
+          //   newData[data.result[key]['topic_level1']['uuid']] = [];
+          // }
+          // newData[data.result[key]['topic_level1']['uuid']].push({
+          //   xPos: data.result[key]['position'][0],
+          //   yPos: data.result[key]['position'][1],
+          //   color: '#' + data.result[key]['topic_level1']['uuid'].substring(0, 6)
+          // })
+          // newData['alldots'].push({
+          //   xPos: data.result[key]['position'][0],
+          //   yPos: data.result[key]['position'][1],
+          //   color: '#' + data.result[key]['topic_level1']['uuid'].substring(0, 6)
+          // })
+
+          // if (!newData.hasOwnProperty(data.result[key]['topic_level2']['uuid'])) {
+          //   newData[data.result[key]['topic_level2']['uuid']] = [];
+          // }
+          // newData[data.result[key]['topic_level2']['uuid']].push({
+          //   xPos: data.result[key]['position'][0],
+          //   yPos: data.result[key]['position'][1],
+          //   color: '#' + data.result[key]['topic_level2']['uuid'].substring(0, 6)
+          // })
+          // newData['alldots'].push({
+          //   xPos: data.result[key]['position'][0],
+          //   yPos: data.result[key]['position'][1],
+          //   color: '#' + data.result[key]['topic_level2']['uuid'].substring(0, 6)
+          // })
+
+          if (!newData.hasOwnProperty(data.result[key]['topic_level3']['uuid'])) {
             newData[data.result[key]['topic_level3']['uuid']] = [];
           }
           newData[data.result[key]['topic_level3']['uuid']].push({
             xPos: data.result[key]['position'][0],
             yPos: data.result[key]['position'][1],
-            color: '#'+data.result[key]['topic_level3']['uuid'].substring(0, 6)
+            color: '#' + data.result[key]['topic_level3']['uuid'].substring(0, 6)
           })
           newData['alldots'].push({
             xPos: data.result[key]['position'][0],
             yPos: data.result[key]['position'][1],
-            color: '#'+data.result[key]['topic_level3']['uuid'].substring(0, 6)
+            color: '#' + data.result[key]['topic_level3']['uuid'].substring(0, 6)
           })
         }
-        console.log(">> appprovider-processed:", newData)
+        // console.log(">> appprovider-processed:", newData)
         // setModelType(newData)
         return newData;
       } catch (error) {
@@ -276,100 +244,81 @@ export default function AppProvider({ children }: ReactChildren) {
     // let timer = setTimeout(() => console.log("Delay Invoked: level-1"), 1000);
 
     const id = setInterval(async function () {
-      const _modelType = await searchModelType()
+      // const _modelType = await searchModelType()
       const _modelIteration = await searchModelIteration()
 
-      for (let i = 0; i < _modelType.length; i++) {
-        for (let z = 0; z < _modelType.length; z++) {
-          _modelType[z]['bgcolor'] = 'light';
-        }
-        _modelType[i]['bgcolor'] = 'success';
-        setModelType(_modelType)
-        await _delay(5000)
 
-        for (let j = 0; j < _modelIteration.length; j++) {
-          for (let z = 0; z < _modelIteration.length; z++) {
-            _modelIteration[z]['bgcolor'] = 'light';
-          }
-          _modelIteration[j]['bgcolor'] = 'success';
-          setModelIteration(_modelIteration)
-          await _delay(5000)
-
-          const _topicList = await searchModelTopic(_modelIteration[j]['value'])
-          const _processedIteration = await searchProcessedIteration(_modelIteration[j]['value'])
-          
-          // all dots
-          if(_processedIteration.hasOwnProperty('alldots')) {
-            setAllDots(_processedIteration['alldots']);
-          }
-          
-          //model_level1
-          for (let k = 0; k < _topicList['model_level1'].length; k++) {
-            for (let z = 0; z < _topicList['model_level1'].length; z++) {
-              _topicList['model_level1'][z]['bgcolor'] = 'light';
-            }
-            _topicList['model_level1'][k]['bgcolor'] = 'success';
-            setTopicList(_topicList['model_level1'])
-            setTopicSummary(_topicList['model_level1'][k]['summary'])
-            if(_processedIteration.hasOwnProperty(_topicList['model_level1'][k]['uuid'])) {
-              setDotChart(_processedIteration[_topicList['model_level1'][k]['uuid']]);
-            }
-            setLineChart(_topicList['model_level1'][k]['chart']);
-            await _delay(5000)
-          }
-
-          //model_level2
-          for (let k = 0; k < _topicList['model_level2'].length; k++) {
-            for (let z = 0; z < _topicList['model_level2'].length; z++) {
-              _topicList['model_level2'][z]['bgcolor'] = 'light';
-            }
-            _topicList['model_level2'][k]['bgcolor'] = 'success';
-            setTopicList(_topicList['model_level2'])
-            setTopicSummary(_topicList['model_level2'][k]['summary'])
-            if(_processedIteration.hasOwnProperty(_topicList['model_level2'][k]['uuid'])) {
-              setDotChart(_processedIteration[_topicList['model_level2'][k]['uuid']]);
-            }
-            setLineChart(_topicList['model_level2'][k]['chart']);
-            await _delay(5000)
-          }
-
-          //model_level3
-          for (let k = 0; k < _topicList['model_level3'].length; k++) {
-            for (let z = 0; z < _topicList['model_level3'].length; z++) {
-              _topicList['model_level3'][z]['bgcolor'] = 'light';
-            }
-            _topicList['model_level3'][k]['bgcolor'] = 'success';
-            setTopicList(_topicList['model_level3'])
-            setTopicSummary(_topicList['model_level3'][k]['summary'])
-            if(_processedIteration.hasOwnProperty(_topicList['model_level3'][k]['uuid'])) {
-              setDotChart(_processedIteration[_topicList['model_level3'][k]['uuid']]);
-            }
-            setLineChart(_topicList['model_level3'][k]['chart']);
-            await _delay(5000)
-          }
-
-        }
-      }
-
-
-      // d3.csv(
-      //   'https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/2_TwoNum.csv',
-      // ).then(function (data) {
-      //   setDotChart(data);
-      // })
-
+      // for (let z = 0; z < _modelType.length; z++) {
+      //   _modelType[z]['bgcolor'] = 'light';
+      // }
+      // _modelType[i]['bgcolor'] = 'success';
       // setModelType(_modelType)
       // await _delay(5000)
 
+      for (let j = 0; j < _modelIteration.length; j++) {
+        // for (let z = 0; z < _modelIteration.length; z++) {
+        //   _modelIteration[z]['bgcolor'] = 'light';
+        // }
+        // _modelIteration[j]['bgcolor'] = 'success';
+        // setModelIteration(_modelIteration)
+        await _delay(5000)
 
+        const _topicList = await searchModelTopic(_modelIteration[j]['value'])
+        const _processedIteration = await searchProcessedIteration(_modelIteration[j]['value'])
 
-      // console.log('new date', new Date())
-      // console.log('_getRandomStr', _getRandomStr(10))
-      // dotChartData[2]['country'] = _getRandomStr(10)
-      // console.log('dotChartData111', dotChartData)
-      // setDotChart(dotChartData);
+        // all dots
+        if (_processedIteration.hasOwnProperty('alldots')) {
+          setAllDots(_processedIteration['alldots']);
+        }
 
-    }, 240000);
+        //model_level1
+        // for (let k = 0; k < _topicList['model_level1'].length; k++) {
+        //   for (let z = 0; z < _topicList['model_level1'].length; z++) {
+        //     _topicList['model_level1'][z]['bgcolor'] = 'light';
+        //   }
+        //   _topicList['model_level1'][k]['bgcolor'] = 'success';
+        //   setTopicList(_topicList['model_level1'])
+        //   setTopicSummary(_topicList['model_level1'][k]['summary'])
+        //   if (_processedIteration.hasOwnProperty(_topicList['model_level1'][k]['uuid'])) {
+        //     setDotChart(_processedIteration[_topicList['model_level1'][k]['uuid']]);
+        //   }
+        //   setLineChart(_topicList['model_level1'][k]['chart']);
+        //   await _delay(5000)
+        // }
+
+        //model_level2
+        // for (let k = 0; k < _topicList['model_level2'].length; k++) {
+        //   for (let z = 0; z < _topicList['model_level2'].length; z++) {
+        //     _topicList['model_level2'][z]['bgcolor'] = 'light';
+        //   }
+        //   _topicList['model_level2'][k]['bgcolor'] = 'success';
+        //   setTopicList(_topicList['model_level2'])
+        //   setTopicSummary(_topicList['model_level2'][k]['summary'])
+        //   if (_processedIteration.hasOwnProperty(_topicList['model_level2'][k]['uuid'])) {
+        //     setDotChart(_processedIteration[_topicList['model_level2'][k]['uuid']]);
+        //   }
+        //   setLineChart(_topicList['model_level2'][k]['chart']);
+        //   await _delay(5000)
+        // }
+
+        //model_level3
+        for (let k = 0; k < _topicList['model_level3'].length; k++) {
+          for (let z = 0; z < _topicList['model_level3'].length; z++) {
+            _topicList['model_level3'][z]['bgcolor'] = 'light';
+          }
+          _topicList['model_level3'][k]['bgcolor'] = 'success';
+          setTopicList(_topicList['model_level3'])
+          setTopicSummary(_topicList['model_level3'][k]['summary'])
+          if (_processedIteration.hasOwnProperty(_topicList['model_level3'][k]['uuid'])) {
+            setDotChart(_processedIteration[_topicList['model_level3'][k]['uuid']]);
+          }
+          setLineChart(_topicList['model_level3'][k]['chart']);
+          await _delay(5000)
+        }
+
+      }
+
+    }, 180000);
 
     // on Unmount
     return () => {

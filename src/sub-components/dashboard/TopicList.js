@@ -11,7 +11,7 @@ const TopicList = () => {
       <Col md={12} xs={12}>
         <Card>
           <Card.Header className='py-4 card-header-bg-gray'>
-            <h4 className='mb-0'>List of Topics</h4>
+            <h4 className='mb-0'>Trending Topics</h4>
           </Card.Header>
           <Card.Body>
             {/* <Card.Title>Topic List</Card.Title> */}
