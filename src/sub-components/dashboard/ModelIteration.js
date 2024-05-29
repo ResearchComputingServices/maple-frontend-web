@@ -15,7 +15,7 @@ const ModelIteration = () => {
             <h4 className='mb-0'>Model Iteration</h4>
           </Card.Header>
           <Card.Body>
-            <Card.Title>List of available model iterations:</Card.Title>
+            {/* <Card.Title>Model iterations</Card.Title> */}
             <Card.Text>
               <Col md={12} xs={12}>
                 {/* <Form.Control

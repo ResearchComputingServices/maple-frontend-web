@@ -2,6 +2,7 @@
 
 import { AppContextProps, ReactChildren } from 'app/_types'
 import { createContext, useContext, useEffect, useState, useRef } from 'react'
+import * as d3 from 'd3'
 
 // ==========================
 // ==== DEV EXPERIMENTAL ====
@@ -24,6 +25,8 @@ function _getRandomStr(length: any) {
 
 // ==== DEV EXPERIMENTAL ====
 // ==========================
+const validIndexs = ["0", "1", "2", "3", "4"];
+const parseDate = d3.utcParse("%Y-%m-%d");
 
 async function _delay(t: any) {
   return new Promise(res => {
@@ -34,8 +37,11 @@ async function _delay(t: any) {
 function _preFormatChartData(datum: any) {
   const _chartData: any = [];
   datum['date'].forEach((element: any, index: any) => {
-    _chartData.push({ 'date': element.split('T')[0], 'count': datum['count'][index] })
+    // console.log('_preFormatChartData', index, element );
+    // _chartData.push({ 'date': element.split('T')[0], 'count': datum['count'][index] })
+    _chartData.push({ 'date': parseDate(element.split('T')[0]), 'count': datum['count'][index] })
   });
+  console.log('_preFormatChartData', _chartData );
   return _chartData;
 }
 
@@ -157,19 +163,21 @@ export default function AppProvider({ children }: ReactChildren) {
           newData['model_level3'] = [];
           for (const key4 in data.result[key1]['model_level3']['topic']) {
             // console.log('model_level3 key4', key4)
-            newData['model_level3'].push({
-              uuid: data['result'][key1]['model_level3']['topic'][key4]['uuid'],
-              label: data.result[key1]['model_level3']['topic'][key4]['label'],
-              value: data.result[key1]['model_level3']['topic'][key4]['name'],
-              // summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'].join(', '),
-              summary: _preFormatTopicSummarytData(data.result[key1]['model_level3']['topic'][key4]['dot_summary']),
-              bgcolor: 'light',
-              chart: _preFormatChartData(data['result'][key1]['model_level3']['topic'][key4]['chart']['over_time']['1D'])
-            })
+            if (validIndexs.includes(String(data.result[key1]['model_level3']['topic'][key4]['index']))) {
+              newData['model_level3'].push({
+                uuid: data['result'][key1]['model_level3']['topic'][key4]['uuid'],
+                label: data.result[key1]['model_level3']['topic'][key4]['label'],
+                value: data.result[key1]['model_level3']['topic'][key4]['name'],
+                // summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'].join(', '),
+                summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'],
+                bgcolor: 'light',
+                chart: _preFormatChartData(data['result'][key1]['model_level3']['topic'][key4]['chart']['over_time']['1D'])
+              })
+            }
           }
         }
 
-        // console.log(">> appprovider-topiclist:", newData)
+        console.log(">> appprovider-topiclist:", newData)
         // setTopicList(newData)
         return newData
       } catch (error) {
@@ -256,11 +264,11 @@ export default function AppProvider({ children }: ReactChildren) {
       // await _delay(5000)
 
       for (let j = 0; j < _modelIteration.length; j++) {
-        // for (let z = 0; z < _modelIteration.length; z++) {
-        //   _modelIteration[z]['bgcolor'] = 'light';
-        // }
-        // _modelIteration[j]['bgcolor'] = 'success';
-        // setModelIteration(_modelIteration)
+        for (let z = 0; z < _modelIteration.length; z++) {
+          _modelIteration[z]['bgcolor'] = 'light';
+        }
+        _modelIteration[j]['bgcolor'] = 'success';
+        setModelIteration(_modelIteration)
         await _delay(5000)
 
         const _topicList = await searchModelTopic(_modelIteration[j]['value'])
@@ -318,7 +326,7 @@ export default function AppProvider({ children }: ReactChildren) {
 
       }
 
-    }, 180000);
+    }, 50000);
 
     // on Unmount
     return () => {

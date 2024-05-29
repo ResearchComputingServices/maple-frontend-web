@@ -26,6 +26,6 @@ export async function GET(request: Request) {
     next: { revalidate: 3600 },
   })
   const result = await res.json()
-  console.log(">> app-api-processed:", result)
+  // console.log(">> app-api-processed:", result)
   return NextResponse.json({ result })
 }

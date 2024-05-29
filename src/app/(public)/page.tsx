@@ -22,14 +22,14 @@ const Home = () => {
                 <Row>
                     <Col xl={3} lg={3} md={3} xs={12} className='mb-2'>
                         {/* <ModelType /> */}
-                        {/* <ModelIteration /> */}
+                        <ModelIteration />
                         <TopicList />
                         <TopicSummary />
                         {/* <TopicArticle /> */}
                     </Col>
                     <Col xl={9} lg={9} md={9} xs={12} className='mb-2'>
                         <ProjectHighlight width="1400" height="220"/>
-                        <DotChart width="1400" height="450"/>
+                        <DotChart width="1400" height="380"/>
                     </Col>
                     {/* <Col xl={3} lg={3} md={3} xs={12} className='mb-2'> */}
                         {/* <DownloadData /> */}
