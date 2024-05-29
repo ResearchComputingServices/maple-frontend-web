@@ -19,13 +19,13 @@ const ProjectHighlight = ({ width, height }) => {
   const ref = createRef()
 
   useEffect(() => {
-    // console.log('>>>>>>>>>>>>>>>>lineChart', lineChart)
+    console.log('>>>>>>>>>>>>>>>>lineChart', lineChart)
     draw()
   })
 
   const draw = () => {
     // set the dimensions and margins of the graph
-    const margin = {top: 25, right: 35, bottom: 25, left: 35, padd: 15};
+    const margin = {top: 20, right: 30, bottom: 20, left: 60, padd: 0};
     const fullWidth = 1100;
     const fullHeight = 220;
     const width = fullWidth - margin.left - margin.right;
@@ -42,12 +42,6 @@ const ProjectHighlight = ({ width, height }) => {
 
     //Read the data
     if (lineChart != 'Loading') {
-      lineChart.forEach(function(d) {
-        d.date = parseDate(d.date);
-        // console.log(d.date)
-        return d;
-      })
-
       // Add X axis
       // let minDate = getDate(lineChart[0]['date']), 
       // maxDate = getDate(lineChart[lineChart.length-1]['date']),
@@ -59,7 +53,7 @@ const ProjectHighlight = ({ width, height }) => {
         return d.date.getTime(); 
       }),
       padding = (maxDate - minDate) * .1;
-      console.log('minDate, maxdate', minDate, maxDate)
+
       const x = d3.scaleTime()
         .rangeRound([0, width])
         .domain(
@@ -68,14 +62,10 @@ const ProjectHighlight = ({ width, height }) => {
       const xAxis = d3.axisBottom(x)
         .tickSizeOuter(0)
         .tickFormat(d3.timeFormat("%b"));
-        
       svg
         .append('g')
-        .attr('transform', 'translate(0,' + height + ')')
+        .attr('transform', 'translate(' + margin.left + ',' + height + ')')
         .call(xAxis)
-        // .selectAll('text')
-        // .attr('transform', 'translate(-10,0)rotate(-45)')
-        // .style('text-anchor', 'end')
       svg
         .append("text")
         .attr("transform", "translate(" + (width / 2) + " ," + (height + 30) + ")")
@@ -89,8 +79,11 @@ const ProjectHighlight = ({ width, height }) => {
           d3.min(lineChart, function (d) {return d.count}) -2, 
           d3.max(lineChart, function (d) {return d.count;}) +1
         ]);
-      const yAxis = d3.axisRight(y);
-      svg.append('g').call(yAxis)
+      const yAxis = d3.axisLeft(y);
+      svg
+        .append('g')
+        .attr("transform", "translate(" + margin.left + ", 0)")
+        .call(yAxis)
       svg
         .append("text")
         .attr("transform", "rotate(-90)")
@@ -118,6 +111,7 @@ const ProjectHighlight = ({ width, height }) => {
           return height - y(d.count)
         })
         .attr('fill', '#69b3a2')
+      
     }
   }
 
@@ -129,7 +123,7 @@ const ProjectHighlight = ({ width, height }) => {
             <h4 className='mb-0'>Topic Evolution</h4>
           </Card.Header>
           <Card.Body>
-            <Col md={12} xs={12} className='m-2'>
+            <Col md={12} xs={12} className='m-4'>
               <svg width={width} height={height} ref={ref} />
             </Col>
           </Card.Body>

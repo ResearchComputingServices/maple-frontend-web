@@ -15,14 +15,14 @@ const DotChart = ({ width, height }) => {
 
   useEffect(() => {
     draw()
-    // console.log('>>>>>>>>>>>>>>>>dotChart', dotChart)
+    console.log('>>>>>>>>>>>>>>>>dotChart', dotChart)
   })
 
   const draw = () => {
     // set the dimensions and margins of the graph
     const margin = { top: 30, right: 30, bottom: 30, left: 50 },
       width = 1100,
-      height = 400
+      height = 380
     // append the svg object to the body of the page
     const svg = d3.select(ref.current)
       svg.selectAll('*').remove()
@@ -42,17 +42,12 @@ const DotChart = ({ width, height }) => {
         d3.min(allDots, function (d) {return d.xPos}) -1, 
         d3.max(allDots, function (d) {return d.xPos;}) +1
       ]);
-      svg
-        .append('g')
-        .attr('class', 'myXaxis') // Note that here we give a class to the X axis, to be able to call it later and modify it
-        .attr('transform', `translate(0, ${height})`)
-        .call(d3.axisBottom(x))
-        .attr('opacity', '1')
-      svg
-        .append("text")
-        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
-        .style("text-anchor", "middle")
-        .text("Value");
+      // svg
+      //   .append('g')
+      //   .attr('class', 'myXaxis') 
+      //   .attr('transform', `translate(0, ${height})`)
+      //   .call(d3.axisBottom(x))
+      //   .attr('opacity', '1')
 
       // Add Y axis
       const y = d3.scaleLinear()
@@ -61,17 +56,9 @@ const DotChart = ({ width, height }) => {
         d3.min(allDots, function (d) {return d.yPos}) -2, 
         d3.max(allDots, function (d) {return d.yPos;}) +1
       ]);
-      svg
-        .append('g')
-        .call(d3.axisRight(y))
-      svg
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0)
-        .attr("x", 0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Value");
+      // svg
+      //   .append('g')
+      //   .call(d3.axisRight(y))
 
       // Add dots
       svg
