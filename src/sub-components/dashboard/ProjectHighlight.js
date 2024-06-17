@@ -25,9 +25,10 @@ const ProjectHighlight = ({ width, height }) => {
 
   const draw = () => {
     // set the dimensions and margins of the graph
+    const bgColorList = ["#FF8A65", "#FFD54F", "#AED581", "#4DD0E1", "#BA68C8"];
     const margin = {top: 20, right: 30, bottom: 20, left: 60, padd: 0};
-    const fullWidth = 1100;
-    const fullHeight = 220;
+    const fullWidth = 800;
+    const fullHeight = 300;
     const width = fullWidth - margin.left - margin.right;
     const height = fullHeight - margin.bottom - margin.top;
     // append the svg object to the body of the page
@@ -42,18 +43,16 @@ const ProjectHighlight = ({ width, height }) => {
 
     //Read the data
     if (lineChart != 'Loading') {
-      // Add X axis
-      // let minDate = getDate(lineChart[0]['date']), 
-      // maxDate = getDate(lineChart[lineChart.length-1]['date']),
-      // padding = (maxDate - minDate) * .1;
-      let minDate = d3.min(lineChart, function(d) { 
+      
+      let minDate = d3.min(lineChart['linechart'], function(d) { 
         return d.date.getTime(); 
       }),
-      maxDate = d3.max(lineChart, function(d) { 
+      maxDate = d3.max(lineChart['linechart'], function(d) { 
         return d.date.getTime(); 
       }),
       padding = (maxDate - minDate) * .1;
 
+      // Add X axis
       const x = d3.scaleTime()
         .rangeRound([0, width])
         .domain(
@@ -64,11 +63,11 @@ const ProjectHighlight = ({ width, height }) => {
         .tickFormat(d3.timeFormat("%b"));
       svg
         .append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + height + ')')
+        .attr('transform', 'translate(' + margin.left + ',' + (height + 10) + ')')
         .call(xAxis)
       svg
         .append("text")
-        .attr("transform", "translate(" + (width / 2) + " ," + (height + 30) + ")")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + 40) + ")")
         .style("text-anchor", "middle")
         .text("Month");
 
@@ -76,13 +75,13 @@ const ProjectHighlight = ({ width, height }) => {
       const y = d3.scaleLinear()
         .range([height, 0])
         .domain([
-          d3.min(lineChart, function (d) {return d.count}) -2, 
-          d3.max(lineChart, function (d) {return d.count;}) +1
+          d3.min(lineChart['linechart'], function (d) {return d.count}) -5, 
+          d3.max(lineChart['linechart'], function (d) {return d.count;}) +2
         ]);
       const yAxis = d3.axisLeft(y);
       svg
         .append('g')
-        .attr("transform", "translate(" + margin.left + ", 0)")
+        .attr("transform", "translate(" + (margin.left - 20) + ", 10)")
         .call(yAxis)
       svg
         .append("text")
@@ -94,23 +93,55 @@ const ProjectHighlight = ({ width, height }) => {
         .text("Count");
 
       // Bars
+      // svg
+      //   .selectAll('.bar')
+      //   .data(lineChart)
+      //   .enter()
+      //   .append('rect')
+      //   .attr("class", "bar")
+      //   .attr('x', function (d) {
+      //     return x(d.date) - margin.padd
+      //   })
+      //   .attr('width', 2.5)
+      //   .attr('y', function (d) {
+      //     return y(d.count)
+      //   })
+      //   .attr('height', function (d) {
+      //     return height - y(d.count)
+      //   })
+      //   .attr('fill', '#69b3a2')
+      
+      
+      // Draw the line
+      const line = d3.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.count); })
+        // .curve(d3.curveNatural)
+        
+
       svg
-        .selectAll('.bar')
-        .data(lineChart)
-        .enter()
-        .append('rect')
-        .attr("class", "bar")
-        .attr('x', function (d) {
-          return x(d.date) - margin.padd
+        .selectAll('path')
+        .remove()
+        .data(lineChart['chartarr'])
+        .join('path')
+        .attr('class', 'stock-lines')
+        .attr('d', line)
+        .style('stroke', function (d, i) {
+          return bgColorList[i]
         })
-        .attr('width', 2.5)
-        .attr('y', function (d) {
-          return y(d.count)
-        })
-        .attr('height', function (d) {
-          return height - y(d.count)
-        })
-        .attr('fill', '#69b3a2')
+        .style('stroke-width', 2)
+        .style('fill', 'transparent');
+
+      // Add the line
+      // svg.append("path")
+      //   .datum(lineChart)
+      //   .attr("fill", "none")
+      //   .attr("stroke", "#69b3a2")
+      //   .attr("stroke-width", 1.5)
+      //   .attr("d", d3.line()
+      //     .x(function(d) { return x(d.date) })
+      //     .y(function(d) { return y(d.count) })
+      //   )
       
     }
   }
@@ -120,7 +151,7 @@ const ProjectHighlight = ({ width, height }) => {
       <Col md={12} xs={12}>
         <Card>
           <Card.Header className='py-4 card-header-bg-gray'>
-            <h4 className='mb-0'>Topic Evolution</h4>
+            <h4 className='mb-0'>Topics Evolution</h4>
           </Card.Header>
           <Card.Body>
             <Col md={12} xs={12} className='m-4'>

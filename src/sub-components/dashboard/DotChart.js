@@ -21,8 +21,8 @@ const DotChart = ({ width, height }) => {
   const draw = () => {
     // set the dimensions and margins of the graph
     const margin = { top: 30, right: 30, bottom: 30, left: 50 },
-      width = 1100,
-      height = 380
+      width = 300,
+      height = 320
     // append the svg object to the body of the page
     const svg = d3.select(ref.current)
       svg.selectAll('*').remove()
@@ -106,7 +106,7 @@ const DotChart = ({ width, height }) => {
       <Col md={12} xs={12}>
         <Card>
           <Card.Header className='py-4 card-header-bg-gray'>
-            <h4 className='mb-0'>Topic Analysis</h4>
+            <h4 className='mb-0'>Trending Topic Ratio</h4>
           </Card.Header>
           <Card.Body>
             <Col md={12} xs={12} className='m-4'>

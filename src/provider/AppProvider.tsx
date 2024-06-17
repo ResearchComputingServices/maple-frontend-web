@@ -26,6 +26,7 @@ function _getRandomStr(length: any) {
 // ==== DEV EXPERIMENTAL ====
 // ==========================
 const validIndexs = ["0", "1", "2", "3", "4"];
+const bgColorList = ["#FFCCBC", "#FFECB3", "#DCEDC8", "#B2EBF2", "#E1BEE7"];
 const parseDate = d3.utcParse("%Y-%m-%d");
 
 async function _delay(t: any) {
@@ -34,12 +35,12 @@ async function _delay(t: any) {
   })
 }
 
-function _preFormatChartData(datum: any) {
+function _preFormatChartData(datum: any, name: any, bgcolor: any) {
   const _chartData: any = [];
   datum['date'].forEach((element: any, index: any) => {
     // console.log('_preFormatChartData', index, element );
     // _chartData.push({ 'date': element.split('T')[0], 'count': datum['count'][index] })
-    _chartData.push({ 'date': parseDate(element.split('T')[0]), 'count': datum['count'][index] })
+    _chartData.push({ 'date': parseDate(element.split('T')[0]), 'count': datum['count'][index], 'name': name, 'bgcolor': bgcolor })
   });
   console.log('_preFormatChartData', _chartData );
   return _chartData;
@@ -71,7 +72,7 @@ export default function AppProvider({ children }: ReactChildren) {
   const [modelIteration, setModelIteration] = useState([{ value: 'DEFAULT', label: 'Loading...', bgcolor: 'light' }])
   const [topicList, setTopicList] = useState([{ value: 'DEFAULT', label: 'Loading...', bgcolor: 'light' }])
   const [articleSummary, setArticleSummary] = useState('Loading...')
-  const [topicSummary, setTopicSummary] = useState('Loading...')
+  const [topicSummary, setTopicSummary] = useState('Loading')
   const [dotChart, setDotChart] = useState<any>('Loading')
   const [allDots, setAllDots] = useState<any>('Loading')
   const [lineChart, setLineChart] = useState<any>('Loading')
@@ -112,10 +113,12 @@ export default function AppProvider({ children }: ReactChildren) {
         //     bgcolor: 'light'
         //   }
         // }
+        let tmpDate = data.result[0]['createDate'].split('T')[0];
+        let tmpTime = data.result[0]['createDate'].split('T')[1].split('.')[0];
         newData[0] = {
-          label: data.result[0]['name'] + '_' + data.result[0]['createDate'],
+          label: data.result[0]['name'] + ' (' + tmpDate + ' ' + tmpTime + ')',
           value: data.result[0]['uuid'],
-          bgcolor: 'light'
+          bgcolor: '#F4F6F6'
         }
         // console.log(">> appprovider-modeliteration:", newData)
         // setModelIteration(newData)
@@ -160,19 +163,25 @@ export default function AppProvider({ children }: ReactChildren) {
           //   })
           // }
 
-          newData['model_level3'] = [];
+          newData['model_level3'] = {
+            'topic_details': [],
+            'chartarr': [],
+            'linechart': []
+          };
+
           for (const key4 in data.result[key1]['model_level3']['topic']) {
             // console.log('model_level3 key4', key4)
             if (validIndexs.includes(String(data.result[key1]['model_level3']['topic'][key4]['index']))) {
-              newData['model_level3'].push({
-                uuid: data['result'][key1]['model_level3']['topic'][key4]['uuid'],
+              newData['model_level3']['topic_details'][data.result[key1]['model_level3']['topic'][key4]['index']] = {
+                index: data.result[key1]['model_level3']['topic'][key4]['index'],
+                uuid:  data.result[key1]['model_level3']['topic'][key4]['uuid'],
                 label: data.result[key1]['model_level3']['topic'][key4]['label'],
                 value: data.result[key1]['model_level3']['topic'][key4]['name'],
-                // summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'].join(', '),
                 summary: data.result[key1]['model_level3']['topic'][key4]['dot_summary'],
-                bgcolor: 'light',
-                chart: _preFormatChartData(data['result'][key1]['model_level3']['topic'][key4]['chart']['over_time']['1D'])
-              })
+                bgcolor: bgColorList[data.result[key1]['model_level3']['topic'][key4]['index']]
+              }
+              newData['model_level3']['chartarr'][data.result[key1]['model_level3']['topic'][key4]['index']] = _preFormatChartData(data['result'][key1]['model_level3']['topic'][key4]['chart']['over_time']['1D'], data.result[key1]['model_level3']['topic'][key4]['label'], bgColorList[data.result[key1]['model_level3']['topic'][key4]['index']]);
+              newData['model_level3']['linechart'] = newData['model_level3']['linechart'].concat(_preFormatChartData(data['result'][key1]['model_level3']['topic'][key4]['chart']['over_time']['1D'], data.result[key1]['model_level3']['topic'][key4]['label'], bgColorList[data.result[key1]['model_level3']['topic'][key4]['index']]));
             }
           }
         }
@@ -265,9 +274,9 @@ export default function AppProvider({ children }: ReactChildren) {
 
       for (let j = 0; j < _modelIteration.length; j++) {
         for (let z = 0; z < _modelIteration.length; z++) {
-          _modelIteration[z]['bgcolor'] = 'light';
+          _modelIteration[z]['bgcolor'] = '#F4F6F6';
         }
-        _modelIteration[j]['bgcolor'] = 'success';
+        _modelIteration[j]['bgcolor'] = '#DAF7A6';
         setModelIteration(_modelIteration)
         await _delay(5000)
 
@@ -310,20 +319,15 @@ export default function AppProvider({ children }: ReactChildren) {
         // }
 
         //model_level3
-        for (let k = 0; k < _topicList['model_level3'].length; k++) {
-          for (let z = 0; z < _topicList['model_level3'].length; z++) {
-            _topicList['model_level3'][z]['bgcolor'] = 'light';
+        setTopicList(_topicList['model_level3']['topic_details'])
+        setTopicSummary(_topicList['model_level3']['topic_details'])
+        setLineChart({'chartarr': _topicList['model_level3']['chartarr'], 'linechart': _topicList['model_level3']['linechart']})
+        for (let k = 0; k < _topicList['model_level3']['topic_details'].length; k++) {
+          if (_processedIteration.hasOwnProperty(_topicList['model_level3']['topic_details'][k]['uuid'])) {
+            setDotChart(_processedIteration[_topicList['model_level3']['topic_details'][k]['uuid']]);
           }
-          _topicList['model_level3'][k]['bgcolor'] = 'success';
-          setTopicList(_topicList['model_level3'])
-          setTopicSummary(_topicList['model_level3'][k]['summary'])
-          if (_processedIteration.hasOwnProperty(_topicList['model_level3'][k]['uuid'])) {
-            setDotChart(_processedIteration[_topicList['model_level3'][k]['uuid']]);
-          }
-          setLineChart(_topicList['model_level3'][k]['chart']);
           await _delay(5000)
         }
-
       }
 
     }, 50000);
