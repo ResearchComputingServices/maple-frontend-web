@@ -24,16 +24,20 @@ const Home = () => {
                         {/* <ModelType /> */}
                         <ModelIteration />
                         <TopicList />
-                        <TopicSummary />
                         {/* <TopicArticle /> */}
                     </Col>
-                    <Col xl={9} lg={9} md={9} xs={12} className='mb-2'>
-                        <ProjectHighlight width="1400" height="220"/>
-                        <DotChart width="1400" height="380"/>
+                    <Col xl={6} lg={6} md={6} xs={12} className='mb-2'>
+                        <ProjectHighlight width="800" height="320"/>
                     </Col>
-                    {/* <Col xl={3} lg={3} md={3} xs={12} className='mb-2'> */}
+                    <Col xl={3} lg={3} md={3} xs={12} className='mb-2'>
+                        <DotChart width="300" height="320"/>
                         {/* <DownloadData /> */}
-                    {/* </Col> */}
+                    </Col>
+                </Row>
+                <Row>
+                    <Col xl={12} lg={12} md={12} xs={12} className='mb-2'>
+                        <TopicSummary />
+                    </Col>
                 </Row>
             </div>
         </Container>

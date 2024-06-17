@@ -1,11 +1,9 @@
 'use client'
-
 import { useAppContext } from 'provider/AppProvider'
 import { Col, Row, Card, ListGroup } from 'react-bootstrap'
 
 const TopicList = () => {
   const { topicList } = useAppContext()
-
   return (
     <Row className='mt-4'>
       <Col md={12} xs={12}>
@@ -18,13 +16,8 @@ const TopicList = () => {
             <Card.Text>
               <Col md={12} xs={12}>
                 <ListGroup>
-                  {/* <ListGroup.Item>Cras justo odio</ListGroup.Item>
-                  <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
-                  <ListGroup.Item>Morbi leo risus</ListGroup.Item>
-                  <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
-                  <ListGroup.Item>Vestibulum at eros</ListGroup.Item> */}
                   {topicList.map((item, index) => {
-                    return <ListGroup.Item variant={item.bgcolor}>{item.label}</ListGroup.Item>
+                    return <ListGroup.Item style={{"background-color": item.bgcolor}}>{item.label}</ListGroup.Item>
                   })}
                 </ListGroup>
               </Col>
