@@ -102,14 +102,14 @@ const Config = () => {
             let modelObj;
             if (rcSanityCheck["model_type"] == "CHATGPT") {
                 modelObj = {
-                    name: rcSanityCheck["name"],
+                    name: "ChatGPT",
                     config: {
                         api_key: rcSanityCheck["key"]
                     }
                 }
             } else if (rcSanityCheck["model_type"] == "PERSONALIZED") {
                 modelObj = {
-                    name: rcSanityCheck["name"],
+                    name: "Personalized",
                     config: {
                         host: rcSanityCheck["host"],
                         port: rcSanityCheck["port"],
@@ -120,18 +120,21 @@ const Config = () => {
             try {
                 const data = {
                     model: modelObj,
-                    article_summary_length: rcSanityCheck["summary_len"],
-                    max_bullet_points: rcSanityCheck["max_bullet"],
+                    article_summary_length: parseInt(rcSanityCheck["summary_len"], 10),
+                    max_bullet_points: parseInt(rcSanityCheck["max_bullet"], 10),
                 };
                 const options = {
                     method: "POST",
-                    headers: { "content-type": "application/x-www-form-urlencoded" },
-                    data: qs.stringify(data),
+                    headers: {
+                        "content-type": "application/json",
+                        "Accept": "application/json"
+                      },
+                    data: data,
                     url: address,
                 };
                 const resp = await axios(options);
 
-                // console.log("DEBUG Axios:", resp.data);
+                console.log("DEBUG Axios:", resp.data);
                 setShowModalSubmit(true);
                 onButtonClickReset();
             } catch (err) {
