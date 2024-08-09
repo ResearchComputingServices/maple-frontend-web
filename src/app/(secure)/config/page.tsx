@@ -1,144 +1,89 @@
 'use client';
 
-import React, { Fragment, useState, useEffect, useRef } from "react";
-import { Row, Col, Card, Form, Modal, Button, Container } from "react-bootstrap";
-import Link from 'next/link';
-import axios from "axios";
-import qs from "qs";
-import { useForm } from 'react-hook-form';
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card, Form, Modal, Button, Container, Spinner } from "react-bootstrap";
+import axios, {  } from "axios";
 import { NavbarTop2 } from 'app/_components/navbars';
+import { BackEndConfig } from "app/_components/ModelPersonalized";
+import DataModel from "app/_components/ModelPersonalized";
+import { useRouter } from "next/navigation";
+import { Configuration } from "./config.d";
 
 const baseApiUrl = process.env.PATH_URL_BACKEND_REMOTE;
 const configEndpoint = "/config";
 
-let didInit = false;
 
 const Config = () => {
+    const router = useRouter()
+    const [loadingConfig, setLoadingConfig] = useState(true);
 
-    // Radio button
-    const [modelTypeRadio, setModelTypeRadio] = useState("");
-    const handleChangeRadio = (event: any) => {
-        setModelTypeRadio(event.target.value);
-        // console.log(event.target.value);
-    };
+    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        const form = event.currentTarget;
+        if (form.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            event.preventDefault();
+            event.stopPropagation();
+            onButtonClickUpdateConfig();
+        }
+    }
 
-    // ChatGPT Name
-    const [gptName, setGptName] = useState("");
-    const handleChangeGptName = (event: any) => {
-        setGptName(event.target.value);
-        // console.log(event.target.value);
-    };
+    const [modelTypeRadio, setModelTypeRadio] = useState("Personalized");
 
-    // ChatGPT API Key
+    // ChatGPT props
     const [gptApiKey, setGptApiKey] = useState("");
-    const handleChangeGptApiKey = (event: any) => {
-        setGptApiKey(event.target.value);
-        // console.log(event.target.value);
-    };
 
-    // Personalized Model Name
-    const [personalizedName, setPersonalizedName] = useState("");
-    const handleChangePersonalizedName = (event: any) => {
-        setPersonalizedName(event.target.value);
-        // console.log(event.target.value);
-    };
-
-    // Personalized API Key
-    const [personalizedApiKey, setPersonalizedApiKey] = useState("");
-    const handleChangePersonalizedApiKey = (event: any) => {
-        setPersonalizedApiKey(event.target.value);
-        // console.log(event.target.value);
-    };
-
-    // Personalized Host
+    // Personalized props
+    const [serverValid, setServerValid] = React.useState<boolean>(false)
     const [personalizedHost, setPersonalizedHost] = useState("");
-    const handleChangePersonalizedHost = (event: any) => {
-        setPersonalizedHost(event.target.value);
-        // console.log(event.target.value);
-    };
-
-    // Personalized port
     const [personalizedPort, setPersonalizedPort] = useState("");
-    const handleChangePersonalizedPort = (event: any) => {
-        setPersonalizedPort(event.target.value);
-        // console.log(event.target.value);
-    };
+    const [personalizedApiKey, setPersonalizedApiKey] = useState("");
+    const [personalizedSelectedModel, setPersonalizedSelectedModel] = useState<string | null>(null)
+    const [personalizedAvailableModels, setPersonalizedAvailableModels] = useState<string[] | null>(null)
 
-    // Article Summary Length
+    // Backend Config props
     const [summaryLen, setsummaryLen] = useState("");
-    const handleChangeSummaryLen = (event: any) => {
-        setsummaryLen(event.target.value);
-        // console.log(event.target.value);
-    };
-
-    // Max Bullet Point
     const [maxBulletPoint, setmaxBulletPoint] = useState("");
-    const handleChangeMaxBulletPoint = (event: any) => {
-        setmaxBulletPoint(event.target.value);
-        // console.log(event.target.value);
-    };
-
-    // reset button
-    const onButtonClickReset = () => {
-        setModelTypeRadio("");
-        setGptName("");
-        setGptApiKey("");
-        setPersonalizedName("");
-        setPersonalizedApiKey("");
-        setPersonalizedHost("");
-        setPersonalizedPort("");
-        setsummaryLen("");
-        setmaxBulletPoint("");
-    };
+    const [spiderIntervalSeconds, setSpiderIntervalSeconds] = useState("");
+    const [modelIterationPersistanceDays, setModelIterationPersistanceDays] = useState("");
 
     // ==== Post Config Details ====
     const onButtonClickUpdateConfig = async () => {
 
-        // TODO perform sanity check
-        const rcSanityCheck = sanityCheck();
-        // console.log(rcSanityCheck);
-        if (rcSanityCheck) {
+        const config = getConfig();
+
+        if (config) {
             const address = `${baseApiUrl}${configEndpoint}`;
-            let modelObj;
-            if (rcSanityCheck["model_type"] == "CHATGPT") {
-                modelObj = {
-                    name: "ChatGPT",
-                    config: {
-                        api_key: rcSanityCheck["key"]
-                    }
-                }
-            } else if (rcSanityCheck["model_type"] == "PERSONALIZED") {
-                modelObj = {
-                    name: "Personalized",
-                    config: {
-                        host: rcSanityCheck["host"],
-                        port: rcSanityCheck["port"],
-                        api_key: rcSanityCheck["key"]
-                    }
-                }
-            }
             try {
-                const data = {
-                    model: modelObj,
-                    article_summary_length: parseInt(rcSanityCheck["summary_len"], 10),
-                    max_bullet_points: parseInt(rcSanityCheck["max_bullet"], 10),
-                };
                 const options = {
                     method: "POST",
                     headers: {
                         "content-type": "application/json",
                         "Accept": "application/json"
-                      },
-                    data: data,
+                    },
+                    data: config,
                     url: address,
                 };
                 const resp = await axios(options);
+                setConfig({config: {...resp.data}})
+                // console.log("DEBUG Axios:", resp.data);
 
-                console.log("DEBUG Axios:", resp.data);
                 setShowModalSubmit(true);
-                onButtonClickReset();
-            } catch (err) {
-                console.log("ERR Axios:", err);
+                setTimeout(() => {
+                    setShowModalSubmit(false)
+                    router.push('/config')
+                }, 3000);
+            } catch (err: any) {
+                console.error("ERR Axios:", err);
+                if (err.code! === "ERR_BAD_REQUEST") {
+                    console.log("test")
+                    setModalWarningChildren(<>
+                     <h5>{err.message}</h5>
+                     {err.response.data.message.map((v: string)=> <p>{v}</p>)}
+                    </>)
+                    setShowModalWarning(true)
+                }
             }
         } else {
             console.log("ERROR: Sanity check failed");
@@ -154,6 +99,11 @@ const Config = () => {
                 size="lg"
                 aria-labelledby="contained-modal-title-vcenter"
                 centered
+                onHide={()=>{
+                    console.log('closing')
+                    setShowModalSubmit(false)
+                    router.push('/config')
+                }}
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="contained-modal-title-vcenter">
@@ -171,7 +121,7 @@ const Config = () => {
 
     // ==== Modal Warning ====
     const [showModalWarning, setShowModalWarning] = useState(false);
-    const [modalWarningMessage, setModalWarningMessage] = useState("");
+    const [modalWarningChildren, setModalWarningChildren] = useState<React.ReactNode | null>(null);
     const ModalWarning = (props: any) => {
         return (
             <Modal
@@ -188,367 +138,189 @@ const Config = () => {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{modalWarningMessage}</p>
+                    {modalWarningChildren}
                 </Modal.Body>
             </Modal>
         );
     };
 
-    function sanityCheck() {
-        let rcObj = {
-            model_type: "",
-            name: "",
-            key: "",
-            host: "",
-            port: "",
-            summary_len: "",
-            max_bullet: ""
-        };
-
-        if (modelTypeRadio != "") {
-            if (modelTypeRadio == "CHATGPT") {
-                if (gptName != "") {
-                    rcObj["model_type"] = "CHATGPT";
-                    rcObj["name"] = gptName;
-                } else {
-                    setModalWarningMessage("Please provide config name for ChatGPT Model");
-                    setShowModalWarning(true);
-                    return false;
-                }
-                if (gptApiKey != "") {
-                    rcObj["model_type"] = "CHATGPT";
-                    rcObj["key"] = gptApiKey;
-                } else {
-                    setModalWarningMessage("Please provide API Key for ChatGPT");
-                    setShowModalWarning(true);
-                    return false;
-                }
-            } else if (modelTypeRadio == "PERSONALIZED") {
-                if (personalizedName != "") {
-                    rcObj["model_type"] = "PERSONALIZED";
-                    rcObj["name"] = personalizedName;
-                } else {
-                    setModalWarningMessage("Please provide config name for Personalized Model");
-                    setShowModalWarning(true);
-                    return false;
-                }
-                if (personalizedHost != "") {
-                    rcObj["model_type"] = "PERSONALIZED";
-                    rcObj["host"] = personalizedHost;
-                } else {
-                    setModalWarningMessage("Please provide Host IP for Personalized Model");
-                    setShowModalWarning(true);
-                    return false;
-                }
-                if (personalizedPort != "") {
-                    rcObj["model_type"] = "PERSONALIZED";
-                    rcObj["port"] = personalizedPort;
-                } else {
-                    setModalWarningMessage("Please provide Host Port for Personalized Model");
-                    setShowModalWarning(true);
-                    return false;
-                }
-                if (personalizedApiKey != "") {
-                    rcObj["model_type"] = "PERSONALIZED";
-                    rcObj["key"] = personalizedApiKey;
-                } else {
-                    setModalWarningMessage("Please provide API Key for Personalized Model");
-                    setShowModalWarning(true);
-                    return false;
-                }
-            } else {
-                setModalWarningMessage("Unknown data model option type!");
-                setShowModalWarning(true);
-                return false;
+    function getConfig() {
+        let sendConfig: Configuration = {} as Configuration;
+        if (modelTypeRadio == "ChatGPT") {
+            sendConfig.model = {
+                name: "ChatGPT",
+                api_key: gptApiKey
             }
-        } else {
-            setModalWarningMessage("Select at least one data model type!");
-            setShowModalWarning(true);
-            return false;
-        }
+        } else if (modelTypeRadio == "Personalized") {
+            sendConfig.model = {
+                name: "Personalized",
+                host: personalizedHost,
+                port: personalizedPort,
+                api_key: personalizedApiKey,
+                selectedModel: personalizedSelectedModel ?? undefined,
+                models: personalizedAvailableModels ?? undefined,
+            }
+        } 
+        sendConfig.article_summary_length = parseInt(summaryLen, 10);
+        sendConfig.max_bullet_points = parseInt(maxBulletPoint, 10);
+        sendConfig.spider_interval_seconds = parseInt(spiderIntervalSeconds, 10);
+        sendConfig.model_iteration_persistence_days = parseInt(modelIterationPersistanceDays, 10);
 
-        if (summaryLen != "") {
-            rcObj["summary_len"] = summaryLen;
-        } else {
-            setModalWarningMessage("Please provide article summary length");
-            setShowModalWarning(true);
-        }
-
-        if (maxBulletPoint != "") {
-            rcObj["max_bullet"] = maxBulletPoint;
-        } else {
-            setModalWarningMessage("Please provide maximum bullet points");
-            setShowModalWarning(true);
-        }
-
-        return rcObj;
+        return sendConfig;
     }
 
+    async function setConfig({ config }: { config: Configuration }) {
+        setModelTypeRadio(config.model.name);
+        if (config.model.name == "ChatGPT") {
+            setGptApiKey(config.model.api_key)
+        }
+        if (config.model.name == "Personalized") {
+            setPersonalizedApiKey(config.model.api_key);
+            setPersonalizedHost(config.model.host);
+            setPersonalizedPort(config.model.port);
+            setPersonalizedAvailableModels(config.model.models ?? null)
+            
+            let selectedModel: string | null = null;
+            if (config.model.selectedModel) {
+                if (config.model.models!.includes(config.model.selectedModel)){
+                    selectedModel = config.model.selectedModel
+                } else {
+                    if (config.model.models!.length > 0) {
+                        selectedModel = config.model.models![0]
+                    }
+                }
+            } else {
+                if (config.model.models && config.model.models.length > 0) {
+                    selectedModel = config.model.models[0]
+                }
+            }
+            if (selectedModel) {
+                setPersonalizedSelectedModel(selectedModel)
+            }
+        }
+        setsummaryLen(config.article_summary_length.toString());
+        setmaxBulletPoint(config.max_bullet_points.toString());
+        setSpiderIntervalSeconds(config.spider_interval_seconds.toString());
+        setModelIterationPersistanceDays(config.model_iteration_persistence_days.toString());
+    }
+
+    async function fetchSetConfig() {
+        fetch(`${baseApiUrl}${configEndpoint}`)
+            .then(async (resp) => {
+                const data = await resp.json();
+                const config: Configuration = { ...data };
+                setConfig({ config: config });
+                setLoadingConfig(false);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    // Fetch data from backend to display values.
+    useEffect(() => {
+        fetchSetConfig();
+    }, [])
+
     return (
+
         <div>
             <div className='header'>
                 <NavbarTop2 />
             </div>
-            <Container fluid className='p-2'>
-                <div className='p-2'>
-                    <Row className="align-items-center justify-content-center g-0">
+            {loadingConfig ? <div className="jd-flex align-items-center justify-content-center text-center p-3">
+                <p>Loading configuration...</p>
+                <Spinner animation="border" role="status" className="justify-">
+                    <span className="visually-hidden"></span>
+                </Spinner>
+            </div> :
+                <Container fluid className='p-2'>
+                    <div className='p-2'>
+                        <Row className="align-items-center justify-content-center g-0">
+                            <Col xxl={8} lg={8} md={8} xs={12} className="py-8 py-xl-0">
+                                <Card>
+                                    <Card.Header className="p-4 bg-white">
+                                        <h3 className="mb-0">Policy News Tracker Configuration</h3>
+                                    </Card.Header>
 
-                        <Col xxl={8} lg={8} md={8} xs={12} className="py-8 py-xl-0">
-                            <Card>
-                                <Card.Header className="p-4 bg-white">
-                                    <h4 className="mb-0">Data Model Configuration Parameters</h4>
-                                </Card.Header>
+                                    <Card.Body >
+                                        <Form 
+                                        onSubmit={handleSubmit} 
+                                        noValidate
+                                        >
+                                            <Row className="align-items-center gap-3">
+                                                <DataModel
+                                                    dataModelChatGPT={{
+                                                        selected: modelTypeRadio,
+                                                        setSelected: setModelTypeRadio,
+                                                        APIKey: gptApiKey,
+                                                        setAPIKey: setGptApiKey,
+                                                        serverValid: serverValid,
+                                                        setServerValid: setServerValid,
+                                                    }}
+                                                    dataModelPersonalized={{
+                                                        selected: modelTypeRadio,
+                                                        setSelected: setModelTypeRadio,
+                                                        serverValid: serverValid,
+                                                        setServerValid: setServerValid,
+                                                        APIKey: personalizedApiKey,
+                                                        setAPIKey: setPersonalizedApiKey,
+                                                        host: personalizedHost,
+                                                        setHost: setPersonalizedHost,
+                                                        port: personalizedPort,
+                                                        setPort: setPersonalizedPort,
+                                                        selectedModel: personalizedSelectedModel,
+                                                        setSelectedModel: setPersonalizedSelectedModel,
+                                                        availableModels: personalizedAvailableModels,
+                                                        setAvailableModels: setPersonalizedAvailableModels,
+                                                    }}
+                                                />
 
-                                <Card.Body>
-                                    <Row className="align-items-center">
-                                        <Col xl={12} md={12} xs={12} className="mb-3">
-                                            <Row>
-                                                <Col xl={12} md={12} xs={12}>
-                                                    <Form.Label as={Col} md={4} htmlFor="default">
-                                                        <h5>
-                                                            Choose Data Model {" "}
-                                                            <span style={{ color: "red" }}>*</span>
-                                                        </h5>
-                                                    </Form.Label>
-                                                </Col>
+                                                <BackEndConfig props={{
+                                                    articleSummaryLength: summaryLen,
+                                                    setArticleSummaryLength: setsummaryLen,
+                                                    maxBulletPoints: maxBulletPoint,
+                                                    setMaxBulletPoints: setmaxBulletPoint,
+                                                    spiderIntervalSeconds: spiderIntervalSeconds, //TODO change
+                                                    setSpiderIntervalSeconds: setSpiderIntervalSeconds, // TODO change
+                                                    modelIterationPersistanceDays: modelIterationPersistanceDays, // TODO change
+                                                    setModelIterationPersistanceDays: setModelIterationPersistanceDays, // TODO change
+                                                }}></BackEndConfig>
+
                                                 <Col xs={12}>
-                                                    <hr className="mb-4" />
-                                                </Col>
+                                                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                        <Button variant="warning" onClick={() => router.push("/")}>
+                                                            Cancel
+                                                        </Button>
+                                                        
+                                                        <Button 
+                                                        variant="success" 
+                                                        type="submit" 
+                                                        role="button" 
+                                                        disabled={serverValid ? false : true }>
+                                                            Submit
+                                                        </Button>
+                                                    </div>
 
-                                                <Col xl={12} md={12} xs={12}>
-                                                    <Row className="mb-3">
-                                                        <Col xl={1} lg={2} md={2} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Check.Input
-                                                                type="radio"
-                                                                name="modelInputRadio"
-                                                                value="CHATGPT"
-                                                                onChange={handleChangeRadio}
-                                                                checked={modelTypeRadio === "CHATGPT"}
-                                                            />
-                                                        </Col>
-                                                        <Col xl={11} lg={10} md={10} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label as={Col} md={4} htmlFor="default">
-                                                                <h5>
-                                                                    ChatGPT Model
-                                                                </h5>
-                                                            </Form.Label>
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-3">
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                        </Col>
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label>
-                                                                API Key Name{" "}
-                                                            </Form.Label>
-                                                        </Col>
-                                                        <Col xl={6} lg={6} md={6} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder="Enter API Key Name"
-                                                                id="gptName"
-                                                                value={gptName}
-                                                                onChange={handleChangeGptName}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-3">
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                        </Col>
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label>
-                                                                API Key Value{" "}
-                                                            </Form.Label>
-                                                        </Col>
-                                                        <Col xl={6} lg={6} md={6} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder="Enter API Key Value"
-                                                                id="gptApiKey"
-                                                                value={gptApiKey}
-                                                                onChange={handleChangeGptApiKey}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                </Col>
-                                                <Col xs={12}>
-                                                    <hr className="mb-4" />
-                                                </Col>
+                                                    <ModalSubmitStatus
+                                                        show={showModalSubmit}
+                                                        onHide={() => setShowModalSubmit(false)}
+                                                    />
 
-                                                <Col xl={12} md={12} xs={12}>
-                                                    <Row className="mb-3">
-                                                        <Col xl={1} lg={2} md={2} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Check.Input
-                                                                type="radio"
-                                                                name="modelInputRadio"
-                                                                value="PERSONALIZED"
-                                                                onChange={handleChangeRadio}
-                                                                checked={modelTypeRadio === "PERSONALIZED"}
-                                                            />
-                                                        </Col>
-                                                        <Col xl={11} lg={10} md={10} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label as={Col} md={4} htmlFor="default">
-                                                                <h5>
-                                                                    Personalized Model
-                                                                </h5>
-                                                            </Form.Label>
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-3">
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                        </Col>
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label>
-                                                                API Key Name{" "}
-                                                            </Form.Label>
-                                                        </Col>
-                                                        <Col xl={6} lg={6} md={6} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder="Enter API Key Name"
-                                                                id="personalizedName"
-                                                                value={personalizedName}
-                                                                onChange={handleChangePersonalizedName}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-3">
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                        </Col>
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label>
-                                                                API Key Value{" "}
-                                                            </Form.Label>
-                                                        </Col>
-                                                        <Col xl={6} lg={6} md={6} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder="Enter API Key Value"
-                                                                id="personalizedApiKey"
-                                                                value={personalizedApiKey}
-                                                                onChange={handleChangePersonalizedApiKey}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-3">
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                        </Col>
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label>
-                                                                Host IP{" "}
-                                                            </Form.Label>
-                                                        </Col>
-                                                        <Col xl={6} lg={6} md={6} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder="Enter Host IP address"
-                                                                id="personalizedHost"
-                                                                value={personalizedHost}
-                                                                onChange={handleChangePersonalizedHost}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-3">
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                        </Col>
-                                                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Label>
-                                                                Host Port{" "}
-                                                            </Form.Label>
-                                                        </Col>
-                                                        <Col xl={6} lg={6} md={6} xs={12} className="mb-3 mb-lg-0">
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder="Enter Host Port Number"
-                                                                id="personalizedPort"
-                                                                value={personalizedPort}
-                                                                onChange={handleChangePersonalizedPort}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                </Col>
-                                            </Row>
-
-                                            <Col xs={12}>
-                                                <hr className="mb-4" />
-                                            </Col>
-
-                                            <Row className="mb-3">
-                                                <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                    <Form.Label>
-                                                        <h5>
-                                                            Article Summary Length <span style={{ color: "red" }}>*</span>
-                                                        </h5>
-                                                    </Form.Label>
-                                                </Col>
-                                                <Col xl={9} lg={9} md={9} xs={12} className="mb-3 mb-lg-0">
-                                                    <Form.Control
-                                                        type="text"
-                                                        placeholder="Article Summary Length"
-                                                        id="summaryLen"
-                                                        value={summaryLen}
-                                                        onChange={handleChangeSummaryLen}
+                                                    <ModalWarning
+                                                        show={showModalWarning}
+                                                        onHide={() => setShowModalWarning(false)}
                                                     />
                                                 </Col>
                                             </Row>
 
-                                            <Col xs={12}>
-                                                <hr className="mb-4" />
-                                            </Col>
-
-                                            <Row className="mb-3">
-                                                <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
-                                                    <Form.Label>
-                                                        <h5>
-                                                            Max Bullet Points <span style={{ color: "red" }}>*</span>
-                                                        </h5>
-                                                    </Form.Label>
-                                                </Col>
-                                                <Col xl={9} lg={9} md={9} xs={12} className="mb-3 mb-lg-0">
-                                                    <Form.Control
-                                                        type="text"
-                                                        placeholder="Max Bullet Points"
-                                                        id="maxBulletPoint"
-                                                        value={maxBulletPoint}
-                                                        onChange={handleChangeMaxBulletPoint}
-                                                    />
-                                                </Col>
-                                            </Row>
-
-                                            <Col xs={12}>
-                                                <hr className="mb-4" />
-                                            </Col>
-
-
-                                            <Col xs={12}>
-                                                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                                                    <Button variant="secondary" onClick={onButtonClickReset}>
-                                                        Reset
-                                                    </Button>
-                                                    <Button variant="warning" onClick={onButtonClickReset}>
-                                                        Cancel
-                                                    </Button>
-                                                    <Button variant="success" onClick={onButtonClickUpdateConfig}>
-                                                        Submit
-                                                    </Button>
-                                                </div>
-                                                <ModalSubmitStatus
-                                                    show={showModalSubmit}
-                                                    onHide={() => setShowModalSubmit(false)}
-                                                />
-                                                <ModalWarning
-                                                    show={showModalWarning}
-                                                    onHide={() => setShowModalWarning(false)}
-                                                />
-                                            </Col>
-                                        </Col>
-                                    </Row>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-                </div>
-            </Container>
+                                        </Form>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        </Row>
+                    </div>
+                </Container>}
         </div>
     );
 };

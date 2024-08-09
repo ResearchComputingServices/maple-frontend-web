@@ -22,6 +22,9 @@ const nextConfig = {
     PATH_URL_BACKEND_REMOTE: "http://134.117.214.192/api/v1",
     LOGIN_CODE: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
   },
+  experimental: {
+    serverActions: true,
+  }
 };
 
 module.exports = nextConfig;
