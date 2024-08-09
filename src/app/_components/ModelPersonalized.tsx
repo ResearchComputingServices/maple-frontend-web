@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, OverlayTrigger, Row, Tooltip } from "react-bootstrap";
-import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps } from "app/(secure)/config/config.d";
+import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps } from "app/_types/config.d";
 import { validateLLMServer } from "app/(secure)/config/validateServer";
 import OpenAI from 'openai';
 
@@ -28,7 +28,7 @@ export function ModelPersonalized({
             port: Number(port) ?? '',
             api_key: APIKey!
         })
-
+        console.log(ret)
         if (ret.status) {
             setServerValid(true)
             setServerValidationError(null)

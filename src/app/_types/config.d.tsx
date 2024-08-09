@@ -112,3 +112,9 @@ export interface BackEndProps {
 export interface FrontEndProps {
 
 }
+
+export interface validateLLMServerProps {
+    host: string,
+    port: number,
+    api_key?: string
+}

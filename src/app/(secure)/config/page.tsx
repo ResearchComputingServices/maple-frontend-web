@@ -7,7 +7,7 @@ import { NavbarTop2 } from 'app/_components/navbars';
 import { BackEndConfig } from "app/_components/ModelPersonalized";
 import DataModel from "app/_components/ModelPersonalized";
 import { useRouter } from "next/navigation";
-import { Configuration } from "./config.d";
+import { Configuration } from "../../_types/config.d";
 
 const baseApiUrl = process.env.PATH_URL_BACKEND_REMOTE;
 const configEndpoint = "/config";

@@ -1,14 +1,10 @@
 'use server'
 
 import axios, { AxiosRequestConfig } from "axios";
-import { Configuration, instanceOfLLMCapabilities, instanceOfLLMCapabilitiesReturn } from "./config.d";
+import { Configuration, instanceOfLLMCapabilities, instanceOfLLMCapabilitiesReturn, validateLLMServerProps } from "app/_types/config.d";
 import https from "https";
 
-interface validateLLMServerProps {
-    host: string,
-    port: number,
-    api_key?: string
-}
+
 
 export async function validateLLMServer({ host, port, api_key }: validateLLMServerProps): Promise<instanceOfLLMCapabilitiesReturn> {
 
@@ -22,7 +18,8 @@ export async function validateLLMServer({ host, port, api_key }: validateLLMServ
     if (api_key) {
         options.headers = {
             ...options.headers,
-            'x-api-key': `${api_key}`
+            'x-api-key': `${api_key}`,
+            'ngrok-skip-browser-warning': true,
         }
     }
 
@@ -31,6 +28,7 @@ export async function validateLLMServer({ host, port, api_key }: validateLLMServ
         options = options
     )
         .then((response) => {
+            console.log(response)
             return instanceOfLLMCapabilities(response.data)
         })
         .catch((error) => {
@@ -44,6 +42,7 @@ export async function validateLLMServer({ host, port, api_key }: validateLLMServ
                 message = "It is possible to reach the server, but it seems you are missing the right authorization. Check the api_key and contact the administrator if everything seems correct from your part."
                 body = {status: error.response!.status!}
             }
+            console.error(error)
             return {
                 status: false,
                 missing: [],
