@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  webpack5: true,
   webpack: (config, { webpack }) => {
     config.experiments = {
       ...config.experiments,
@@ -23,8 +22,10 @@ const nextConfig = {
     LOGIN_CODE: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
   },
   experimental: {
-    serverActions: true,
-  }
+    serverActions: {
+      allowedOrigins: ['134.117.214.92'],
+    },
+  },
 };
 
 module.exports = nextConfig;

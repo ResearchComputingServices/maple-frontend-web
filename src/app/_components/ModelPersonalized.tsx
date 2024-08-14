@@ -1,9 +1,95 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, OverlayTrigger, Row, Tooltip } from "react-bootstrap";
+import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, OverlayTrigger, Row, Spinner, Tooltip } from "react-bootstrap";
 import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps } from "app/_types/config.d";
-import { validateLLMServer } from "app/(secure)/config/validateServer";
+import { testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
 import OpenAI from 'openai';
 
+const DEFAULT_QUESTION =`You are a reporter. Your task is to create a summary of an article with a limit of 50 words. Do not include any description of the task.
+
+# Article:
+The former chief financial officer for Royal Bank of Canada is suing the bank for almost $50 million over claims of wrongful dismissal.
+
+RBC announced on April 5 that it had fired Nadine Ahn after an internal review found evidence she was in an "undisclosed close personal relationship" with another employee who received preferential treatment, including promotion and compensation increases, which violated the bank's code of conduct.
+
+A lawsuit filed by Ahn in the Ontario Superior Court of Justice on Thursday says there is no merit to the allegations, which it calls patently and categorically false.
+
+The lawsuit states that Ahn denies providing preferential treatment to her colleague and that RBC's decision to fire her was tainted by gender-based stereotypes about friendships between women and men.
+
+RBC spokesperson Gillian McArdle said in a statement that the facts are very clear that there was a significant breach of the bank's code of conduct, the claims in the lawsuit are without merit and the bank will vigorously defend against them in court.
+
+The $48.9-million lawsuit, first reported by Bloomberg, includes seeking damages for wrongful dismissal, damages for defamation, punitive damages and other claims.
+`
+export function ModelPersonalizedQuestion(
+    { isServerValid, host, port, api_key, model }: { isServerValid: boolean, host?: string, port?: string, api_key?: string, model?: string }
+) {
+    const [question, setQuestion] = useState(DEFAULT_QUESTION)
+    const [answer, setAnswer] = useState('')
+    const [loadingAnswer, setLoadingAnswer] = useState(false)
+
+    async function AnswerQuestion() {
+        setLoadingAnswer(true)
+        testLLMServer({ host: host!, port: Number(port), api_key: api_key, model_type: model!, question: question })
+            .then(response => {
+                console.log("response for question", response)
+                if (Array.isArray(response) && response.length > 0) {
+                    setAnswer(response[0])
+                }
+                return response
+            }, (reason) => {
+                setAnswer('Failed retrieving answer.')
+            })
+            .catch(error => {
+                console.error("Ooopsss")
+                console.error(error);
+            })
+            .finally(() => setLoadingAnswer(false))
+    }
+
+    return (
+        <>
+            {isServerValid ?
+                <div className="my-3">
+                    <Form.Group className="mb-3">
+                        <Form.Label>Question:</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value)}
+                            as="textarea"
+                            rows={5} />
+                    </Form.Group>
+                    {!loadingAnswer && answer !== "" ?
+                        <Form.Group className="mb-3">
+                            <Form.Label>Answer:</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={answer}
+                                readOnly
+                                as="textarea"
+                                rows={5} />
+                        </Form.Group> : null}
+
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <Button
+                            className=""
+                            variant="success"
+                            disabled={loadingAnswer}
+                            onClick={async (e) => await AnswerQuestion()}>
+                            {loadingAnswer ?
+                                <>
+                                    {/* <Row> */}
+                                    <Spinner animation="border" role="status" size="sm" />
+                                    <p>Loading</p>
+                                    {/* </Row> */}
+                                </>
+                                : "Test model"}
+                        </Button>
+                    </div>
+                </div>
+                : null}
+        </>
+    )
+}
 
 export function ModelPersonalized({
     selected, setSelected,
@@ -22,23 +108,27 @@ export function ModelPersonalized({
 
 
     async function validateServer() {
+        setServerValid(false)
         setValidatingServer(true)
-        const ret = await validateLLMServer({
+        await validateLLMServer({
             host: host ?? '',
             port: Number(port) ?? '',
             api_key: APIKey!
         })
-        console.log(ret)
-        if (ret.status) {
-            setServerValid(true)
-            setServerValidationError(null)
-            setAvailableModels!((ret.body as { models?: string[] }).models || [])
-        } else {
-            setServerValid(false)
-            setServerValidationError([ret.message!])
-            setShowModalError(true)
-        }
-        setValidatingServer(false)
+            .then((response) => {
+                if (response.status) {
+                    setServerValid(true)
+                    setServerValidationError(null)
+                    setAvailableModels!((response.body as { models?: string[] }).models || [])
+                } else {
+                    setServerValid(false)
+                    setServerValidationError([response.message!])
+                    setShowModalError(true)
+                }
+                return response
+            })
+            .catch((error) => console.error(error))
+            .finally(() => setValidatingServer(false))
     }
 
     useEffect(() => {
@@ -223,6 +313,13 @@ export function ModelPersonalized({
                     </Col>
                 </Row>
                 : null}
+            <ModelPersonalizedQuestion
+                isServerValid={serverValid}
+                host={host}
+                port={port}
+                api_key={APIKey}
+                model={selectedModel!} />
+
         </Col>
     )
 }
@@ -240,20 +337,20 @@ function ModelChatGPT({ selected, setSelected, APIKey, setAPIKey, serverValid, s
     async function validateServer() {
         setValidatingServer(true)
 
-        const client = new OpenAI({apiKey: APIKey, dangerouslyAllowBrowser: true})
+        const client = new OpenAI({ apiKey: APIKey, dangerouslyAllowBrowser: true })
         const chatCompletion = await client.chat.completions.create({
             messages: [{ role: 'user', content: 'Say this is a test' }],
             model: 'gpt-3.5-turbo',
-          })
-          .then((v) => {
-            setServerValid(true)
-            return v
-          })
-          .catch((err) => {
-            setServerValidationError([String(err)])
-            setShowModalError(true)
-            setServerValid(false)
         })
+            .then((v) => {
+                setServerValid(true)
+                return v
+            })
+            .catch((err) => {
+                setServerValidationError([String(err)])
+                setShowModalError(true)
+                setServerValid(false)
+            })
         setValidatingServer(false)
     }
 
@@ -351,7 +448,7 @@ function ModelChatGPT({ selected, setSelected, APIKey, setAPIKey, serverValid, s
 
 
 export default function DataModel({ dataModelPersonalized, dataModelChatGPT }: DataModelProps) {
-    
+
     return (
         <Card>
             <Card.Header>

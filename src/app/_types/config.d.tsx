@@ -118,3 +118,8 @@ export interface validateLLMServerProps {
     port: number,
     api_key?: string
 }
+
+export interface testLLMServerProps extends validateLLMServerProps {
+    model_type: string,
+    question: string,
+}
