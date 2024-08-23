@@ -1,10 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { BaseSyntheticEvent, useEffect, useState } from "react";
 import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, OverlayTrigger, Row, Spinner, Tooltip } from "react-bootstrap";
 import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps } from "app/_types/config.d";
 import { testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
 import OpenAI from 'openai';
+import { BootstrapReboot, BugFill, RocketTakeoff } from 'react-bootstrap-icons';
 
-const DEFAULT_QUESTION =`You are a reporter. Your task is to create a summary of an article with a limit of 50 words. Do not include any description of the task.
+const sampleArticles: Array<string> = [
+    `LONDON - \n\tTikTok said Tuesday that operations are underway at the first of its three European data centres, part of the popular Chinese owned app's effort to ease Western fears about privacy risks.\n\r\n\n\r\n\tThe video sharing app said it began transferring European user information to a data centre in Dublin. Two more data centres, another in Ireland and one in Norway, are under construction, TikTok said in an update on its plan to localize European user data, dubbed Project Clover.\n\r\n\n\r\n\t\n\r\n\t\t\nTop science and technology headlines, all in one place\n\r\n\n\r\n\n\r\n\tTikTok has been under scrutiny by European and American regulators over concerns that sensitive user data may end up in China. TikTok is owned by ByteDance, a Chinese company that moved its headquarters to Singapore in 2020.\n\r\n\n\r\n\tTikTok unveiled its plan earlier this year to store data in Europe, where there are stringent privacy laws, after a slew of Western governments banned the app from official devices.\n\r\n\n\r\n\tNCC Group, a British cybersecurity company, is overseeing the project, TikTok's vice president of public policy for Europe, Theo Bertram, said in a blog post.\n\r\n\n\r\n\tNCC Group will check data traffic to make sure that only approved employees \"can access limited data types\" and carry out \"real-time monitoring\" to detect and respond to suspicious access attempts, Bertram said.\n\r\n\n\r\n\t\"All of these controls and operations are designed to ensure that the data of our European users is safeguarded in a specially-designed protective environment, and can only be accessed by approved employees subject to strict independent oversight and verification,\" Bertram said.\n\r\n\n`,
+    `\tTravelling can be costly and often financially inaccessible. But in a bid to ease the concerns of travellers grappling with the escalating cost of living and travel expenses, Google Flights is introducing three new features to help individuals discover budget-friendly options.\n\r\n\n\r\n\tAny thrifty traveller knows the first secret to finding cheap flights is to book in advance. But there’s always the pressing question: is it better to book now or wait for lower prices to come along?\n\r\n\n\r\n\tGoogle Flights’ new trend data will help answer that question. When searching for flights, the site now shows when prices have typically been lowest based on dates and destinations. This will make it easier to know if prices are usually lower two months in advance or closer to takeoff.\n\r\n\n\r\n\tThe second feature update allows travellers to track prices to a specific destination with an automated notification email if tickets drop significantly. This feature has two notification options between specific dates or “Any dates” which could include deals anytime between three to six months from the date enabled.\n\r\n\n\r\n\tThe third feature, although it’s only available as part of a pilot program for selected bookings departing from the U.S., might offer travellers an enhanced peace of mind. It’s a “price guarantee” option.\n\r\n\n\r\n\t“You’ll see a colourful price guarantee badge, which means we’re especially confident the fare you see today won’t get any lower before departure,” reads the site.\n\r\n\n\r\n\tIf prices do drop, Google will pay the person the ticket’s difference via Google Pay.\n\r\n\n\r\n\tThese new features come at a time when many Canadians are voicing apprehension about travelling in 2023 due to \nfinancial constraints at home\n.\n\r\n\n\r\n\tIn a recent \nsurvey by Nanos Research\n, commissioned by CTV News, 38 per cent of Canadians say they were more likely to spend less on their summer travel plans, an increase from 31 per cent reported in 2015. Additionally, 57 per cent of Canadians say they have no interest in travelling internationally this year.\n\r\n\n\r\n\tThe poll surveyed 1,055 Canadians over the ages of 18 through phone calls — both land and cell lines — and online between June 29 and June 30.\n\r\n\n\r\n\tFor some of the Canadians who do end up travelling, the expected downtime is not so restful as this time is usually filled with stress, guilt or work-related activities, another survey found.\n\r\n\n\r\n\tAnother \nstudy conducted by ELVTR\n, a U.S.-based online education platform, revealed a majority of American and Canadian workers (68 per cent) can’t stop engaging in work-related activities during their vacations.\n\r\n\n\r\n\tThis could put a damper on any vacations or travel plans as people are spending money to get away from work and routine without succeeding.\n\r\n\n\r\n\tThe survey, which involved 2,300 workers from Canada and the U.S., found that the recession and economic downturn have had an impact on vacation time for many working Canadians. For instance, 37 per cent of surveyed Canadians are taking less time off, while 20 per cent are unable to take vacations at all due to understaffing following company layoffs.\n\r\n\n\r\n\tFor those who can take time off and are looking to fly during the winter holiday, Google says the best deals are around early October as prices tend to be the lowest 71 days before departure for trips starting in mid-December. The best window to buy tickets is now 54-78 days before takeoff.\n\r\n\n`,
+    `Google Flights is introducing three new features to help travellers find budget-friendly options. The first feature shows when prices are typically lowest based on dates and destinations, helping travellers decide whether to book now or wait for lower prices. The second feature allows travellers to track prices to a specific destination and receive automated email notifications if tickets drop significantly. The third feature is a \"price guarantee\" option, currently part of a pilot program for selected bookings departing from the US, where Google will pay the difference via Google Pay if prices drop after purchase. These features come at a time when many Canadians are apprehensive about travelling in 2023 due to financial constraints at home. A recent survey found that 38% of Canadians were more likely to spend less on summer travel plans, and 57% have no interest in travelling internationally this year. Another study revealed that a majority of American and Canadian workers can't stop engaging in work-related activities during their vacations, which could impact their ability to fully enjoy their time off. The recession and economic downturn have also affected vacation time for many working Canadians, with 37% taking less time off and 20% unable to take vacations due to understaffing. For those looking to fly during the winter holiday, Google suggests that the best deals are available around early October, with the lowest prices typically 71 days before departure. The best window to buy tickets is now 54-78 days before takeoff.`,
+    `\tIf you are feeling anxious about making phone calls to strangers, you're not alone. According to a recent survey, over half of Canadians share the concern.\n\r\n\n\r\n\tIn an online survey conducted by Research Co., 53 per cent of Canadians reported feeling anxious when they have to make a phone call to a person they do not know.\n\r\n\n\r\n\t“Two-thirds of Canadians aged 18-to-34 (66 per cent) dread a telephone conversation with a stranger,” Research Co. president Mario Canseco said in a\n press release\n. “The proportions are lower among their counterparts aged 35-to-54 (55 per cent) and aged 55 and over (40 per cent).”\n\r\n\n\r\n\tWhen it comes to text messages and emails, Canadians' opinions remain divided—46 per cent of people believe this form of communication is impersonal, while 47 per cent disagree, according to Research Co.\n\r\n\n\r\n\tBreaking down the data by region, nearly half (49 per cent) of Saskatchewan and Manitoba residents are more likely to consider text messages and emails as impersonal. This proportion is slightly lower among people in Ontario (48 per cent) and British Columbia (47 per cent), and even lower in Quebec (44 per cent), Atlantic Canada (42 per cent) and Alberta (41 per cent).\n\r\n\n\r\n\tWhen Canadians were asked about their feelings regarding giving a speech in front of others, 43 per cent of respondents stated that they have no fear of doing so. However, this proportion drops to 39 per cent among women.\n\r\n\n\r\n\tThe survey also shows that Canadians prefer certain modes of communication for certain tasks.\n\r\n\n\r\n\tFor instance, over a third of Canadians (35 per cent) would opt to make a phone call if they had to ask a question to their municipality or City Hall, while 31 per cent would choose to send an email, and 22 per cent would prefer to schedule a meeting in person.\n\r\n\n\r\n\tForty-one per cent of Canadians said they would choose to place a phone call when they have a question for their bank, while about three-in-ten (31 per cent) would opt for an in-person meeting. However, fewer Canadians would choose to communicate with their financial institution via email (11 per cent), an app (nine per cent) or a text message (seven per cent).\n\r\n\n\r\n\tWhen it comes to ending a relationship, 77 per cent of Canadians believe that the best way to do so is in person.\n\r\n\n\r\n\tFor nine per cent of people, a text message would be considered a reasonable way to break up, with this proportion rising to 13 per cent among those aged 18-to-34, according to the survey.\n\r\n\n\r\n\tWhen asked which option they prefer when resigning from a job, 68 per cent of Canadians choose to do it in person, while 13 per cent would opt to leave a position after sending an email, with this choice being made by 19 per cent of Canadians aged 35-to-54.\n\r\n\n\r\n\tCanadians continue to be divided on their preferred method of ordering food delivery to their home, with very similar proportions opting for a phone call (40 per cent) or using an app (38 per cent).\n\r\n\n\r\n\t \n\r\n\n\r\n\t\nMethodology\n:\n\r\n\n\r\n\t\nResults are based on an online study conducted from August 17 to August 19, 2023, among 1,000 adults in Canada. The data has been statistically weighted according to Canadian census figures for age, gender and region. The margin of error, which measures sample variability, is +/- 3.1 percentage points, nineteen times out of twenty.\n\r\n\n\r\n\t \n\r\n\n\r\n\t\nReporting for this story was paid for through The Afghan Journalists in Residence Project funded by Meta.\n\r\n\n`,
+    `A recent survey conducted by Research Co. found that over half of Canadians feel anxious when making phone calls to strangers. The survey found that 53% of Canadians experience anxiety when they have to make a phone call to an unfamiliar person. The highest proportion of anxiety was found among Canadians aged 18-34, with 66% reporting dread about telephone conversations with strangers. In comparison, 55% of Canadians aged 35-54 reported anxiety, and 40% of Canadians aged 55 and over experience the same feeling.\n\nOpinions among Canadians were divided when it comes to text messages and emails. Approximately 46% of respondents believe that these forms of communication are impersonal, while 47% disagree.\n\nThe survey also revealed regional differences in opinions. Saskatchewan and Manitoba had the highest percentage (49%) of residents who considered text messages and emails impersonal, followed by Ontario (48%), British Columbia (47%), Quebec (44%), Atlantic Canada (42%), and Alberta (41%).\n\nIn terms of preferred communication methods for specific tasks, Canadians showed a preference for phone calls. For example, 35% of Canadians would choose to make a phone call to their municipality or City Hall if they had a question, while 31% would opt for email and 22% for an in-person meeting. When it comes to questions for their bank, 41% would choose a phone call, while 31% would prefer an in-person meeting.\n\nThe survey also asked Canadians how they prefer to end a relationship or resign from a job. The majority (77%) believe that it should be done in person, although 9% of respondents considered a text message as a reasonable option for ending a relationship. When it comes to resigning from a job, 68% of Canadians prefer to do it in person, while 13% would choose to send an email.\n\nFinally, Canadians were divided on their preferred method of ordering food delivery, with 40% preferring a phone call and 38% using an app.\n\nThe online survey was conducted from August 17 to August 19, 2023, and included 1,000 adults in Canada. The results were statistically weighted according to Canadian census figures and have a margin of error of +/- 3.1 percentage points. The study was funded by Meta through The Afghan Journalists in Residence Project.`,
+]
+
+const DEFAULT_QUESTION = `You are a reporter. Your task is to create a summary of an article with a limit of 50 words. Do not include any description of the task.
 
 # Article:
 The former chief financial officer for Royal Bank of Canada is suing the bank for almost $50 million over claims of wrongful dismissal.
@@ -28,6 +37,7 @@ export function ModelPersonalizedQuestion(
 
     async function AnswerQuestion() {
         setLoadingAnswer(true)
+        setAnswer('')
         testLLMServer({ host: host!, port: Number(port), api_key: api_key, model_type: model!, question: question })
             .then(response => {
                 console.log("response for question", response)
@@ -119,7 +129,16 @@ export function ModelPersonalized({
                 if (response.status) {
                     setServerValid(true)
                     setServerValidationError(null)
-                    setAvailableModels!((response.body as { models?: string[] }).models || [])
+                    let availableModels = (response.body as { models?: string[] }).models || []
+                    setAvailableModels!(availableModels)
+                    if (!availableModels.includes(selectedModel!)) {
+                        if (availableModels.length > 0) {
+                            setSelectedModel!(availableModels[0])
+                        } else {
+                            setSelectedModel!("")
+                        }
+                    }
+
                 } else {
                     setServerValid(false)
                     setServerValidationError([response.message!])
@@ -446,9 +465,269 @@ function ModelChatGPT({ selected, setSelected, APIKey, setAPIKey, serverValid, s
     )
 }
 
+const defaultSummaryPrompt = "You are a reporter. Your task is to create a summary of an article with a limit of 50 words. Do not include any description of the task."
+const defaultPrompt = "You are a reporter. Your task is to create a summary of an article with a limit of 50 words. Do not include any description of the task."
+const defaultBulletPointPrompt = "Given the articles, create a list with maximum of 5 bullet points, and each bullet point should not exceed 50 words.\n#Articles:\n"
+const defaultTopicNamePrompt = "You are provided with a list of keywords. Your task is to find the best possible word to represent them. Provide at least one word, and a maximum of 3 words.\n# Keywords:\n"
 
-export default function DataModel({ dataModelPersonalized, dataModelChatGPT }: DataModelProps) {
+interface LLMPrompts {
+    [key: string]: {
+        prompt: string,
+        summary: string,
+        bulletPoint: string,
+        topicName: string
+    },
+    default: {
+        prompt: string,
+        summary: string,
+        bulletPoint: string,
+        topicName: string
+    }
+}
 
+export const defaultLLMPrompts : LLMPrompts = {
+    gpt4all: {
+        "prompt": defaultPrompt,
+        "summary": defaultSummaryPrompt,
+        "bulletPoint": defaultBulletPointPrompt,
+        "topicName": defaultTopicNamePrompt,
+    },
+    mistral: {
+        "prompt": defaultPrompt,
+        "summary": defaultSummaryPrompt,
+        "bulletPoint": defaultBulletPointPrompt,
+        "topicName": defaultTopicNamePrompt,
+    },
+    chatgpt: {
+        "prompt": defaultPrompt,
+        "summary": defaultSummaryPrompt,
+        "bulletPoint": defaultBulletPointPrompt,
+        "topicName": defaultTopicNamePrompt,
+    },
+    default: {
+        "prompt": defaultPrompt,
+        "summary": defaultSummaryPrompt,
+        "bulletPoint": defaultBulletPointPrompt,
+        "topicName": defaultTopicNamePrompt,
+    }
+}
+
+function DataModelPrompt({
+    label,
+    onValidation,
+    prompt,
+    setPrompt,
+    defaultPrompt,
+    defaultContentSample,
+    onErrorMessage,
+    props}: {
+        label: string
+        onValidation: () => boolean,
+        prompt: string,
+        setPrompt: (v: string) => void,
+        defaultPrompt: string,
+        defaultContentSample: string,
+        onErrorMessage?: string,
+        props: any
+    }) {
+
+    const [contentSample, setContentSample] = useState<string>(defaultContentSample)
+    const [validated, setValidated] = useState<boolean | null>(false)
+    
+    function validatePrompt(e: BaseSyntheticEvent ) {
+        console.log(onValidation)
+        setValidated(onValidation())
+    }
+
+    function resetPrompt(e: PointerEvent) {
+        setPrompt(defaultPrompt)
+    }
+    
+
+    return <Row className="mb-3">
+        <Row>
+            <Col className="mb-3 mb-lg-0">
+                <Form.Label>
+                    <h5>{label}</h5>
+                </Form.Label>
+            </Col>
+            <Col className="d-flex justify-content-end gap-2">
+                <BugFill
+                    title="tst"
+                    onClick={validatePrompt}
+                    color={validated ? "green" : "red"}
+                    {...props}
+                    />
+                <BootstrapReboot
+                onClick={resetPrompt}
+                {...props}
+                />
+            </Col>
+        </Row>
+
+        <Col xl={12} lg={12} md={12} xs={12} className="mb-3 mb-lg-0">
+        <Form.Label>
+            <h6>Prompt</h6>
+        </Form.Label>
+        <Form.Control
+                type="text"
+                as="textarea"
+                rows={2}
+                value={prompt}
+                isInvalid={prompt === ""}
+                onChange={(event) => {
+                    setPrompt(event.target.value) 
+                    setValidated(false)
+                }}
+                required
+            />
+            {onErrorMessage ?
+                <Form.Control.Feedback type="invalid">
+                    {onErrorMessage}
+                </Form.Control.Feedback> : null}
+        </Col>
+        <Col xs={12}>
+        <Form.Label>
+            <h6>Content</h6>
+        </Form.Label>
+        <Form.Control
+            type="text"
+            value={contentSample} // TODO: Add the default prompt here
+            onChange={(event) => setContentSample(event.target.value)}
+            as="textarea"
+            rows={4}
+            {...props}
+        />
+        </Col>
+        <Col xs={12}>
+        <Form.Label>
+            <h6>Response</h6>
+        </Form.Label>
+        <Form.Control
+            type="text"
+            
+        />
+        </Col>
+
+        <Col xs={12} className="mb-6">
+            {/* <hr className="" /> */}
+        </Col>
+    </Row>
+}
+
+export function DataModelPrompts({
+    modelName,
+    summaryPrompt,
+    setSummaryPrompt,
+    summaryValidation,
+    bulletPointPrompt,
+    setBulletPointPrompt,
+    bulletPointValidation,
+    topicNamePrompt,
+    setTopicNamePrompt,
+    topicNameValidation,
+}: {
+    modelName: string,
+    summaryPrompt: string,
+    setSummaryPrompt: (v: string) => void,
+    summaryValidation: () => boolean,
+    bulletPointPrompt: string,
+    setBulletPointPrompt: (v: string) => void,
+    bulletPointValidation: () => boolean,
+    topicNamePrompt: string,
+    setTopicNamePrompt: (v: string) => void,
+    topicNameValidation: () => boolean,
+}) {
+    const iconProps = {size: 20}
+
+    console.log("Testing llmprops", defaultLLMPrompts)
+    console.log(defaultLLMPrompts.hasOwnProperty(modelName))
+    
+    // const defaultSummaryPrompt = defaultLLMPrompts.hasOwnProperty(modelName) ? defaultLLMPrompts[modelName]['summary'] : defaultLLMPrompts.default.summary
+    // const defaultBulletPointPrompt = defaultLLMPrompts.hasOwnProperty(modelName) ? defaultLLMPrompts[modelName]['bulletPoint'] : defaultLLMPrompts.default.bulletPoint
+    // const defaultTopicNamePrompt = defaultLLMPrompts.hasOwnProperty(modelName) ? defaultLLMPrompts[modelName]['topicName'] : defaultLLMPrompts.default.topicName
+    const [defaultSummaryPrompt, setDefaultSummaryPrompt] = useState<string>("")
+    const [defaultBulletPointPrompt, setDefaultBulletPointPrompt] = useState<string>("")
+    const [defaultTopicNamePrompt, setDefaultTopicNamePrompt] = useState<string>("")
+    
+    useEffect(() => {
+        console.log("Model name", modelName)
+        if (defaultLLMPrompts.hasOwnProperty(modelName)) {
+            console.log("Setting default prompts")
+            setDefaultSummaryPrompt(defaultLLMPrompts[modelName]['summary'])
+            setDefaultBulletPointPrompt(defaultLLMPrompts[modelName]['bulletPoint'])
+            setDefaultTopicNamePrompt(defaultLLMPrompts[modelName]['topicName'])
+        }
+    }, [modelName])
+
+    return <Col xl={12} md={12} xs={12}>
+        <Col xs={12}>
+            <hr className="mb-4" />
+        </Col>
+        <Row xs={12} className="mb-3">
+            {/* <Col xs={12} className="mb-3 mb-lg-0"> */}
+                <Form.Label as={Row} md={4} htmlFor="default">
+                    <h3>
+                        Prompts
+                        <BugFill className="pl-3"/>
+                    </h3>
+                    
+                </Form.Label>
+                <Col xs={3}>
+                
+                </Col>
+                
+            {/* </Col> */}
+        </Row>
+
+        <DataModelPrompt
+            label="Summary"
+            onValidation={summaryValidation}
+            onErrorMessage="Summary prompt is required."
+            prompt={summaryPrompt}
+            setPrompt={setSummaryPrompt}
+            defaultPrompt={defaultSummaryPrompt}
+            defaultContentSample={sampleArticles[0]}
+            props={{
+                ...iconProps,
+                }}
+            />
+
+        <DataModelPrompt
+            label="Bullet point summary"
+            onValidation={bulletPointValidation}
+            onErrorMessage="Bullet point prompt is required."
+            prompt={bulletPointPrompt}
+            setPrompt={setBulletPointPrompt}
+            defaultPrompt={defaultBulletPointPrompt}
+            defaultContentSample={JSON.stringify(sampleArticles, null, 2)}
+            props={{
+                ...iconProps,
+                }}
+            />
+
+        <DataModelPrompt
+            label="Topic Name"
+            onValidation={topicNameValidation}
+            onErrorMessage="Topic name prompt is required."
+            prompt={topicNamePrompt}
+            setPrompt={setTopicNamePrompt}
+            defaultPrompt={defaultTopicNamePrompt}
+            defaultContentSample={"test, test2, test3"}
+            props={{
+                ...iconProps,
+                rows: 3
+                }}
+            />
+
+    </Col>
+}
+
+export default function DataModel({
+    dataModelPersonalized, 
+    dataModelChatGPT, 
+    dataModelPrompts }: DataModelProps) {
+    console.log("Selected ", dataModelPersonalized.selected)
     return (
         <Card>
             <Card.Header>
@@ -480,6 +759,7 @@ export default function DataModel({ dataModelPersonalized, dataModelChatGPT }: D
                     <Col xs={12}>
                         <hr className="mb-4" />
                     </Col>
+
                     <ModelChatGPT
                         selected={dataModelChatGPT.selected}
                         setSelected={dataModelChatGPT.setSelected}
@@ -487,6 +767,22 @@ export default function DataModel({ dataModelPersonalized, dataModelChatGPT }: D
                         setAPIKey={dataModelChatGPT.setAPIKey}
                         serverValid={dataModelChatGPT.serverValid}
                         setServerValid={dataModelChatGPT.setServerValid}
+                    />
+
+                    <DataModelPrompts
+                        modelName={dataModelPrompts.modelName}
+                        summaryPrompt={dataModelPrompts.summaryPrompt}
+                        setSummaryPrompt={dataModelPrompts.setSummaryPrompt}
+                        summaryValidation={dataModelPrompts.summaryValidation}
+                    
+                        bulletPointPrompt={dataModelPrompts.bulletPointsPrompt}
+                        setBulletPointPrompt={dataModelPrompts.setBulletPointsPrompt}
+                        bulletPointValidation={dataModelPrompts.bulletPointsValidation}
+
+                        topicNamePrompt={dataModelPrompts.topicNamePrompt}
+                        setTopicNamePrompt={dataModelPrompts.setTopicNamePrompt}
+                        topicNameValidation={dataModelPrompts.topicNameValidation}
+
                     />
                 </Row>
             </Card.Body>

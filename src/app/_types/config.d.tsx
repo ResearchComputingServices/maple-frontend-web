@@ -1,3 +1,4 @@
+import { set } from "react-hook-form";
 
 export interface ChatGPTConfig {
     name: "ChatGPT";
@@ -90,10 +91,24 @@ export interface ModelChatGPTProps {
     setServerValid: (value: boolean) => void,
 }
 
+export interface DataModelPromptsProps {
+    modelName: string,
+    summaryPrompt: string,
+    setSummaryPrompt: (v:string)=>void,
+    summaryValidation: () => boolean,
+    bulletPointsPrompt: string,
+    setBulletPointsPrompt: (v:string)=>void,
+    bulletPointsValidation: () => boolean,
+    topicNamePrompt: string,
+    setTopicNamePrompt: (v:string)=>void,
+    topicNameValidation: () => boolean,
+}
+
 
 export interface DataModelProps {
     dataModelPersonalized: ModelPersonalizedProps,
-    dataModelChatGPT: ModelChatGPTProps
+    dataModelChatGPT: ModelChatGPTProps,
+    dataModelPrompts: DataModelPromptsProps,
 }
 
 

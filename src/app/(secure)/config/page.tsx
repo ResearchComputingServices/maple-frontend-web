@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Form, Modal, Button, Container, Spinner } from "react-bootstrap";
 import axios, {  } from "axios";
 import { NavbarTop2 } from 'app/_components/navbars';
-import { BackEndConfig } from "app/_components/ModelPersonalized";
+import { BackEndConfig, defaultLLMPrompts } from "app/_components/ModelPersonalized";
 import DataModel from "app/_components/ModelPersonalized";
 import { useRouter } from "next/navigation";
 import { Configuration } from "../../_types/config.d";
@@ -41,7 +41,11 @@ const Config = () => {
     const [personalizedApiKey, setPersonalizedApiKey] = useState("");
     const [personalizedSelectedModel, setPersonalizedSelectedModel] = useState<string | null>(null)
     const [personalizedAvailableModels, setPersonalizedAvailableModels] = useState<string[] | null>(null)
-
+    
+    const [summaryPrompt, setSummaryPrompt] = useState('');
+    const [bulletPointPrompt, setBulletPointPrompt] = useState('');
+    const [topicNamePrompt, setTopicNamePrompt] = useState('');
+    
     // Backend Config props
     const [summaryLen, setsummaryLen] = useState("");
     const [maxBulletPoint, setmaxBulletPoint] = useState("");
@@ -222,6 +226,16 @@ const Config = () => {
         fetchSetConfig();
     }, [])
 
+    async function validatePrompta(setResult: (v: string)=> void){
+    
+    }
+    function validatePrompt(setResult: (v: string)=> void){
+        const timerid = setTimeout(async ()=>{
+            await validatePrompta(setResult)
+        }, 1000)
+        clearTimeout(timerid)
+    }
+
     return (
 
         <div>
@@ -273,6 +287,19 @@ const Config = () => {
                                                         setSelectedModel: setPersonalizedSelectedModel,
                                                         availableModels: personalizedAvailableModels,
                                                         setAvailableModels: setPersonalizedAvailableModels,
+                                                    }}
+                                                    dataModelPrompts={{
+                                                        modelName: "chatgpt",
+                                                        summaryPrompt: summaryPrompt,
+                                                        setSummaryPrompt: setSummaryPrompt,
+                                                        summaryValidation: () => { return true }, //TODO change
+                                                        bulletPointsPrompt: bulletPointPrompt,
+                                                        setBulletPointsPrompt: setBulletPointPrompt,
+                                                        bulletPointsValidation: () => { return true }, //TODO change
+                                                        topicNamePrompt: topicNamePrompt,
+                                                        setTopicNamePrompt: setTopicNamePrompt,
+                                                        topicNameValidation: () => true, //TODO change
+                                    
                                                     }}
                                                 />
 

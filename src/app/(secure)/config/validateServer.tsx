@@ -7,7 +7,7 @@ import https from "https";
 
 export async function testLLMServer({ host, port, api_key, model_type, question }: testLLMServerProps) : Promise<AxiosResponse> {
     let options: AxiosRequestConfig = {
-        timeout: 60000,
+        timeout: 120000,
         httpsAgent: new https.Agent({
             rejectUnauthorized: false
         }),

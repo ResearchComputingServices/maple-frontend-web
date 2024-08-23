@@ -23,7 +23,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['134.117.214.92'],
+      allowedOrigins: ['134.117.214.172'],
     },
   },
 };
