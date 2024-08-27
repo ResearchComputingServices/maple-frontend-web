@@ -1,5 +1,7 @@
 import { set } from "react-hook-form";
 
+export type ModelType = "ChatGPT" | "Personalized";
+
 export interface ChatGPTConfig {
     name: "ChatGPT";
     api_key: string;
@@ -67,7 +69,7 @@ export function instanceOfLLMCapabilities(object: any): instanceOfLLMCapabilitie
 
 export interface ModelPersonalizedProps {
     selected: string,
-    setSelected: (value: string) => void,
+    setSelected: (value: ModelType) => void,
     serverValid: boolean, 
     setServerValid: (value: boolean) => void,
     host?: string,
@@ -84,7 +86,7 @@ export interface ModelPersonalizedProps {
 
 export interface ModelChatGPTProps {
     selected: string,
-    setSelected: (value: string) => void,
+    setSelected: (value: ModelType) => void,
     APIKey?: string,
     setAPIKey?: (gptApiKey: string) => void,
     serverValid: boolean, 
@@ -92,16 +94,17 @@ export interface ModelChatGPTProps {
 }
 
 export interface DataModelPromptsProps {
+    modelType: ModelType,
+    host?: string,
+    port?: string,
+    api_key?: string,
     modelName: string,
     summaryPrompt: string,
     setSummaryPrompt: (v:string)=>void,
-    summaryValidation: () => boolean,
     bulletPointsPrompt: string,
     setBulletPointsPrompt: (v:string)=>void,
-    bulletPointsValidation: () => boolean,
     topicNamePrompt: string,
     setTopicNamePrompt: (v:string)=>void,
-    topicNameValidation: () => boolean,
 }
 
 
@@ -134,7 +137,7 @@ export interface validateLLMServerProps {
     api_key?: string
 }
 
-export interface testLLMServerProps extends validateLLMServerProps {
-    model_type: string,
-    question: string,
-}
+// export interface testLLMServerProps extends validateLLMServerProps {
+//     model_type: string,
+//     question: string,
+// }

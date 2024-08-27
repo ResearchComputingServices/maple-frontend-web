@@ -7,7 +7,7 @@ import { NavbarTop2 } from 'app/_components/navbars';
 import { BackEndConfig, defaultLLMPrompts } from "app/_components/ModelPersonalized";
 import DataModel from "app/_components/ModelPersonalized";
 import { useRouter } from "next/navigation";
-import { Configuration } from "../../_types/config.d";
+import { Configuration, ModelType } from "../../_types/config.d";
 
 const baseApiUrl = process.env.PATH_URL_BACKEND_REMOTE;
 const configEndpoint = "/config";
@@ -29,7 +29,7 @@ const Config = () => {
         }
     }
 
-    const [modelTypeRadio, setModelTypeRadio] = useState("Personalized");
+    const [modelTypeRadio, setModelTypeRadio] = useState<ModelType>("Personalized");
 
     // ChatGPT props
     const [gptApiKey, setGptApiKey] = useState("");
@@ -41,8 +41,10 @@ const Config = () => {
     const [personalizedApiKey, setPersonalizedApiKey] = useState("");
     const [personalizedSelectedModel, setPersonalizedSelectedModel] = useState<string | null>(null)
     const [personalizedAvailableModels, setPersonalizedAvailableModels] = useState<string[] | null>(null)
-    
+    const [modelName, setModelName] = useState<string>("");
+
     const [summaryPrompt, setSummaryPrompt] = useState('');
+    const [summaryValidated, setSummaryValidated] = useState(false);
     const [bulletPointPrompt, setBulletPointPrompt] = useState('');
     const [topicNamePrompt, setTopicNamePrompt] = useState('');
     
@@ -226,6 +228,27 @@ const Config = () => {
         fetchSetConfig();
     }, [])
 
+    // Set model name based on radio button selection and personalized model selection
+    useEffect(() => {
+        let modelNameUpdate = "gpt4all"
+        if (modelTypeRadio === "ChatGPT") {
+            modelNameUpdate = "chatgpt"
+        } else if (modelTypeRadio === "Personalized") {
+            modelNameUpdate = personalizedSelectedModel ?? "gpt4all"
+        }
+        if (defaultLLMPrompts.hasOwnProperty(modelNameUpdate)) {
+            console.log('blahblahblah')
+            setSummaryPrompt(defaultLLMPrompts[modelNameUpdate]['summary'])
+            setBulletPointPrompt(defaultLLMPrompts[modelNameUpdate]['bulletPoint'])
+            setTopicNamePrompt(defaultLLMPrompts[modelNameUpdate]['topicName'])
+        } else {
+            setSummaryPrompt(defaultLLMPrompts.default.summary)
+            setBulletPointPrompt(defaultLLMPrompts.default.bulletPoint)
+            setTopicNamePrompt(defaultLLMPrompts.default.topicName)
+        }
+        setModelName(modelNameUpdate)
+    }, [modelTypeRadio, personalizedSelectedModel])
+
     async function validatePrompta(setResult: (v: string)=> void){
     
     }
@@ -289,17 +312,17 @@ const Config = () => {
                                                         setAvailableModels: setPersonalizedAvailableModels,
                                                     }}
                                                     dataModelPrompts={{
-                                                        modelName: "chatgpt",
+                                                        modelType: modelTypeRadio,
+                                                        modelName: modelName,
+                                                        host: personalizedHost,
+                                                        port: personalizedPort,
+                                                        api_key: personalizedApiKey,
                                                         summaryPrompt: summaryPrompt,
                                                         setSummaryPrompt: setSummaryPrompt,
-                                                        summaryValidation: () => { return true }, //TODO change
                                                         bulletPointsPrompt: bulletPointPrompt,
                                                         setBulletPointsPrompt: setBulletPointPrompt,
-                                                        bulletPointsValidation: () => { return true }, //TODO change
                                                         topicNamePrompt: topicNamePrompt,
                                                         setTopicNamePrompt: setTopicNamePrompt,
-                                                        topicNameValidation: () => true, //TODO change
-                                    
                                                     }}
                                                 />
 
