@@ -1,3 +1,4 @@
+import { LLMPrompts } from "app/_components/ModelPersonalized";
 import { set } from "react-hook-form";
 
 export type ModelType = "ChatGPT" | "Personalized";
@@ -15,9 +16,15 @@ export interface PersonalizedConfig {
     selectedModel?: string;
     models?: string[];
 }
+export interface ConfigPrompt {
+    summary: string,
+    bullet_points: string,
+    topic_name: string,
+}
 
 export interface Configuration {
     model: ChatGPTConfig | PersonalizedConfig;
+    prompts: Record<string, ConfigPrompt>;
     article_summary_length: number;
     max_bullet_points: number;
     model_iteration_persistence_days: number;
@@ -82,6 +89,7 @@ export interface ModelPersonalizedProps {
     setSelectedModel?: (v: string) => void,
     availableModels?: string[] | null,
     setAvailableModels?: (v: string[]) => void,
+    defaultPrompts: LLMPrompts,
 }
 
 export interface ModelChatGPTProps {
@@ -91,6 +99,7 @@ export interface ModelChatGPTProps {
     setAPIKey?: (gptApiKey: string) => void,
     serverValid: boolean, 
     setServerValid: (value: boolean) => void,
+    defaultPrompts: LLMPrompts,
 }
 
 export interface DataModelPromptsProps {
@@ -105,6 +114,7 @@ export interface DataModelPromptsProps {
     setBulletPointsPrompt: (v:string)=>void,
     topicNamePrompt: string,
     setTopicNamePrompt: (v:string)=>void,
+    defaultPrompts: LLMPrompts,
 }
 
 

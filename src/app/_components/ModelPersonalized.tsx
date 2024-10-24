@@ -1,12 +1,10 @@
 import React, { BaseSyntheticEvent, useEffect, useState } from "react";
 import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, OverlayTrigger, Row, Spinner, Tooltip } from "react-bootstrap";
 import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps, ModelType } from "app/_types/config.d";
-import { testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
+import { buildLLMServerConfig, LLMServerArticleSummary, LLMServerArticleSummaryStream, LLMServerBulletPoint, LLMServerTopicName, testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
 import OpenAI from 'openai';
-import { BootstrapReboot, Bug, BugFill, EraserFill, Hdmi, RocketTakeoff } from 'react-bootstrap-icons';
-import { resolve } from "path";
-import { SERVFAIL } from "dns";
-import { timeout } from "d3";
+import { BootstrapReboot, Bug, BugFill, EraserFill} from 'react-bootstrap-icons';
+import axios from "axios";
 
 const sampleArticles: Array<string> = [
     `LONDON - \n\tTikTok said Tuesday that operations are underway at the first of its three European data centres, part of the popular Chinese owned app's effort to ease Western fears about privacy risks.\n\r\n\n\r\n\tThe video sharing app said it began transferring European user information to a data centre in Dublin. Two more data centres, another in Ireland and one in Norway, are under construction, TikTok said in an update on its plan to localize European user data, dubbed Project Clover.\n\r\n\n\r\n\t\n\r\n\t\t\nTop science and technology headlines, all in one place\n\r\n\n\r\n\n\r\n\tTikTok has been under scrutiny by European and American regulators over concerns that sensitive user data may end up in China. TikTok is owned by ByteDance, a Chinese company that moved its headquarters to Singapore in 2020.\n\r\n\n\r\n\tTikTok unveiled its plan earlier this year to store data in Europe, where there are stringent privacy laws, after a slew of Western governments banned the app from official devices.\n\r\n\n\r\n\tNCC Group, a British cybersecurity company, is overseeing the project, TikTok's vice president of public policy for Europe, Theo Bertram, said in a blog post.\n\r\n\n\r\n\tNCC Group will check data traffic to make sure that only approved employees \"can access limited data types\" and carry out \"real-time monitoring\" to detect and respond to suspicious access attempts, Bertram said.\n\r\n\n\r\n\t\"All of these controls and operations are designed to ensure that the data of our European users is safeguarded in a specially-designed protective environment, and can only be accessed by approved employees subject to strict independent oversight and verification,\" Bertram said.\n\r\n\n`,
@@ -473,7 +471,7 @@ const defaultPrompt = "You are a reporter. Your task is to create a summary of a
 const defaultBulletPointPrompt = "Given the articles, create a list with maximum of 5 bullet points, and each bullet point should not exceed 50 words.\n#Articles:\n"
 const defaultTopicNamePrompt = "You are provided with a list of keywords. Your task is to find the best possible word to represent them. Provide at least one word, and a maximum of 3 words.\n# Keywords:\n"
 
-interface LLMPrompts {
+export interface LLMPrompts {
     [key: string]: {
         prompt: string,
         summary: string,
@@ -493,7 +491,7 @@ export const defaultLLMPrompts: LLMPrompts = {
         "prompt": "gpt4all " + defaultPrompt,
         "summary": "gpt4all " + defaultSummaryPrompt,
         "bulletPoint": "gpt4all " + defaultBulletPointPrompt,
-        "topicName": "gpt4all " + defaultTopicNamePrompt,
+        "topicName": "gpt4all " + "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are an AI assistant to generate a term for a list of keywords. You provide a term between 1 and 3 words. You should not provide any description of the task or assumptions on how you got to the answer.<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\nKeywords: **keywords** <|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>",
     },
     mistral: {
         "prompt": "mistral " + defaultPrompt,
@@ -519,6 +517,7 @@ interface DataModelPromptProps {
     label: string
     onValidation: () => void,
     validated: boolean,
+    validating: boolean,
     setValidated: (v: boolean) => void,
     prompt: string,
     setPrompt: (v: string) => void,
@@ -536,6 +535,7 @@ function DataModelPrompt({
     label,
     onValidation,
     validated,
+    validating,
     setValidated,
     prompt,
     setPrompt,
@@ -547,7 +547,7 @@ function DataModelPrompt({
     onPromptErrorMessage,
     onContentErrorMessage,
     props }: DataModelPromptProps) {
-
+    
     const [showResponse, setShowResponse] = useState<boolean>(false)
 
     function validatePrompt(e: BaseSyntheticEvent) {
@@ -595,11 +595,12 @@ function DataModelPrompt({
     }
 
     useEffect(() => {
-        if (response && validated) {
+        if (response ) {
+            // if (response && validated) {
             setShowResponse(true)
         }
         else {
-            setShowResponse(false)  
+            setShowResponse(false)
         }
     }, [response, validated])
 
@@ -610,7 +611,7 @@ function DataModelPrompt({
                     <h5>{label}</h5>
                 </Form.Text>
                 {
-                    prompt && content ?
+                    prompt && content && !validating?
                         <BugFill
                             title="Debug prompt and content"
                             onClick={validatePrompt}
@@ -690,7 +691,8 @@ function DataModelPrompt({
                     <Form.Control
                         type="text"
                         as={"textarea"}
-                        value={response  ?? ""}
+                        value={response ?? ""}
+                        onChange={(e) => { }}
                     />
                 </Col>
                 <Col xs={12} className="mb-6">
@@ -719,6 +721,7 @@ interface DataModelPromptsProps {
     topicNamePrompt: string,
     setTopicNamePrompt: (v: string) => void,
     // topicNameValidation: () => boolean,
+    defaultPrompts: LLMPrompts,
 }
 
 export function DataModelPrompts({
@@ -738,7 +741,10 @@ export function DataModelPrompts({
     topicNamePrompt,
     setTopicNamePrompt,
     // topicNameValidation,
+    defaultPrompts,
 }: DataModelPromptsProps) {
+    // 'use server'
+    const defaultTopicNamePromptContent = "politics, canada, immigration, refugees, economy"
     const iconProps = { size: 20 }
     const overlayProps = { delay: { show: 250, hide: 400 } }
 
@@ -747,40 +753,85 @@ export function DataModelPrompts({
     const [validateAllEnabled, setValidateAllEnabled] = useState<boolean>(false)
 
     const [summaryValidated, setSummaryValidated] = useState<boolean>(false)
-    const [summaryContent, setSummaryContent] = useState<string>("")
+    const [summaryContent, setSummaryContent] = useState<string>(sampleArticles[0])
     const [summaryResponse, setSummaryResponse] = useState<string | null>(null)
 
 
     const [bulletPointValidated, setBulletPointValidated] = useState<boolean>(false)
-    const [bulletPointContent, setBulletPointContent] = useState<string>("")
+    const [bulletPointContent, setBulletPointContent] = useState<string>(JSON.stringify(sampleArticles, null, 2))
     const [bulletPointResponse, setBulletPointResponse] = useState<string | null>(null)
 
 
     const [topicNameValidated, setTopicNameValidated] = useState<boolean>(false)
-    const [topicNameContent, setTopicNameContent] = useState<string>("")
+    const [topicNameContent, setTopicNameContent] = useState<string>(defaultTopicNamePromptContent)
     const [topicNameResponse, setTopicNameResponse] = useState<string | null>(null)
 
     // Default prompts
     const [defaultSummaryPrompt, setDefaultSummaryPrompt] = useState<string>(
-        Object.prototype.hasOwnProperty.call(defaultLLMPrompts, modelName) ? defaultLLMPrompts[modelName]['summary'] : defaultLLMPrompts['default']['summary']
+        modelName in defaultPrompts ? defaultPrompts[modelName]['prompt'] : defaultPrompts.default.prompt
     )
     const [defaultBulletPointPrompt, setDefaultBulletPointPrompt] = useState<string>(
-        Object.prototype.hasOwnProperty.call(defaultLLMPrompts, modelName) ? defaultLLMPrompts[modelName]['bulletPoint'] : defaultLLMPrompts['default']['bulletPoint']
+        modelName in defaultPrompts ? defaultPrompts[modelName]['bulletPoint'] : defaultPrompts.default.bulletPoint
     )
     const [defaultTopicNamePrompt, setDefaultTopicNamePrompt] = useState<string>(
-        Object.prototype.hasOwnProperty.call(defaultLLMPrompts, modelName) ? defaultLLMPrompts[modelName]['topicName'] : defaultLLMPrompts['default']['topicName']
+        modelName in defaultPrompts ? defaultPrompts[modelName]['topicName'] : defaultPrompts.default.topicName
     )
 
     function summaryValidation() {
-        console.log("Validating summary")
-
         setSummaryValidated(false)
         setSummaryResponse(null)
-        // TODO: Add validation here
-        const timeoutid = setTimeout(() => {
-            setSummaryValidated(true)
-            setSummaryResponse("This is a summary response")
-        }, 500);
+        setValidating(true)
+        async function asyncSummaryValidation() {
+            try {
+                const response = await fetch(
+                    '/config/summary',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            host: host,
+                            port: port,
+                            api_key: api_key,
+                            prompt: summaryPrompt,
+                            model_type: modelName,
+                            articles: [summaryContent],
+                            max_tokens: 512,
+                        })
+                    }
+                )
+                if (!response.ok) {
+                    setSummaryValidated(false)
+                    setSummaryResponse("Failed retrieving response.")
+                    return
+                }
+                const reader = response.body!.getReader()
+                const decoder = new TextDecoder()
+                for (;;) {
+                    const { done, value } = await reader.read()
+                    if (done) {
+                        break
+                    }
+                    const chunk = JSON.parse(decoder.decode(value))
+                    if (chunk.status === "success") {
+                        setSummaryResponse(chunk.message)
+                        setSummaryValidated(true)
+                    } else if (chunk.status === "waiting") {
+                        setSummaryResponse(chunk.message)
+                    } else {
+                        setSummaryResponse(JSON.stringify(chunk.message))
+                        setSummaryValidated(false)
+                    }
+                }
+            } catch (error) {
+                setSummaryResponse("Error occured while retrieving response.")
+                setSummaryValidated(false)
+            } finally {
+                setValidating(false)
+            } 
+        }
+        asyncSummaryValidation()
     }
 
     function bulletPointValidation() {
@@ -788,22 +839,64 @@ export function DataModelPrompts({
         setBulletPointValidated(false)
         setBulletPointResponse(null)
         // TODO: Add validation here
-        const timeoutid = setTimeout(() => {
-            setBulletPointValidated(true)
-            setBulletPointResponse("This is a bullet point response")
-        }, 1000);
+        setValidating(true)
+        async function asyncBulletPointValidation() {
+            LLMServerBulletPoint({
+                host: host!,
+                port: port ? String(port) : "80",
+                api_key: api_key!,
+                model_type: modelName,
+                prompt: bulletPointPrompt,
+                articles: [bulletPointContent],
+            })
+            .then(response => {
+                console.log("response for bullet point", response)
+                if (Array.isArray(response) && response.length > 0) {
+                    setBulletPointResponse(response[0]) // TODO
+                    setBulletPointValidated(true)
+                }
+                return response
+            })
+            .catch(error => {
+                console.error(error)
+                setBulletPointResponse("Failed retrieving response.")
+                setBulletPointValidated(false)
+            })
+            .finally(() => setValidating(false))
+        }
+        asyncBulletPointValidation()
     }
 
     function topicNameValidation() {
         console.log("Validating topic name")
         setTopicNameValidated(false)
         setTopicNameResponse(null)
-        // TODO: Add validation here
-        const timeoutid = setTimeout(() => {
-            setTopicNameValidated(true)
-            setTopicNameResponse("This is a topic name response")
-        }, 1500);
+        setValidating(true)
+        async function asyncTopicNameValidation() {
+            LLMServerTopicName({
+                host: host!,
+                port: port ? String(port) : "80",
+                api_key: api_key!,
+                model_type: modelName,
+                prompt: topicNamePrompt,
+                keywords: topicNameContent.split(",").map(v => v.trim()),
+            })
+            .then(response => {
+                console.log("response for topic name", response)
+                setTopicNameResponse(response)
+                setTopicNameValidated(true)
+                return response
+            })
+            .catch(error => {
+                console.error(error)
+                setTopicNameResponse("Failed retrieving response.")
+                setTopicNameValidated(false)
+            })
+            .finally(() => setValidating(false))
+        }
+        asyncTopicNameValidation()
     }
+
     // Enable validation of prompts only when all prompts and content are filled
     useEffect(() => {
         setValidateAllEnabled([
@@ -817,9 +910,9 @@ export function DataModelPrompts({
     }, [
         summaryPrompt,
         summaryContent,
-        bulletPointPrompt, 
-        bulletPointContent, 
-        topicNamePrompt, 
+        bulletPointPrompt,
+        bulletPointContent,
+        topicNamePrompt,
         topicNameContent])
 
     // Validate all prompts
@@ -845,25 +938,22 @@ export function DataModelPrompts({
         } else {
             setAllValidated(false)
         }
-    }, [summaryValidated])
+    }, [summaryValidated, bulletPointValidated, topicNameValidated])
 
     // Update default prompts depending on the model type and model name
     useEffect(() => {
         if (modelType === "Personalized") {
-            if (Object.prototype.hasOwnProperty.call(defaultLLMPrompts, modelName)) {
-                console.log("Setting default prompts")
-                setDefaultSummaryPrompt(defaultLLMPrompts[modelName]['summary'])
-                setDefaultBulletPointPrompt(defaultLLMPrompts[modelName]['bulletPoint'])
-                setDefaultTopicNamePrompt(defaultLLMPrompts[modelName]['topicName'])
-            }
+            setDefaultSummaryPrompt(modelName in defaultPrompts ? defaultPrompts[modelName]['summary'] : defaultPrompts.default.summary)
+            setDefaultBulletPointPrompt(modelName in defaultPrompts ? defaultPrompts[modelName]['bulletPoint'] : defaultPrompts.default.bulletPoint)
+            setDefaultTopicNamePrompt(modelName in defaultPrompts ? defaultPrompts[modelName]['topicName'] : defaultPrompts.default.topicName)
         } else if (modelType === "ChatGPT") {
-            console.log("Setting default prompts")
-            setDefaultSummaryPrompt(defaultLLMPrompts['chatgpt']['summary'])
-            setDefaultBulletPointPrompt(defaultLLMPrompts['chatgpt']['bulletPoint'])
-            setDefaultTopicNamePrompt(defaultLLMPrompts['chatgpt']['topicName'])
+            setDefaultSummaryPrompt('chatgpt' in defaultPrompts ? defaultPrompts['chatgpt']['summary'] : defaultPrompts.default.summary)
+            setDefaultBulletPointPrompt('chatgpt' in defaultPrompts ? defaultPrompts['chatgpt']['bulletPoint'] : defaultPrompts.default.bulletPoint)
+            setDefaultTopicNamePrompt('chatgpt' in defaultPrompts ? defaultPrompts['chatgpt']['topicName'] : defaultPrompts.default.topicName)
         }
     }, [modelType,
-        modelName])
+        modelName,
+        defaultPrompts])
 
     return <Col xl={12} md={12} xs={12}>
         <Col xs={12}>
@@ -881,12 +971,12 @@ export function DataModelPrompts({
                     {...overlayProps}
                 >
                     {validateAllEnabled ?
-                        <Bug
+                        <BugFill
                             color={allValidated ? "green" : "red"}
                             {...iconProps}
                             onClick={validateAll}
                         />
-                        : <Bug
+                        : <BugFill
                             color={"gray"}
                             {...iconProps}
                         />
@@ -910,6 +1000,7 @@ export function DataModelPrompts({
             onValidation={summaryValidation}
             validated={summaryValidated}
             setValidated={setSummaryValidated}
+            validating={validating}
             prompt={summaryPrompt}
             setPrompt={setSummaryPrompt}
             defaultPrompt={defaultSummaryPrompt}
@@ -919,72 +1010,44 @@ export function DataModelPrompts({
             response={summaryResponse}
             onPromptErrorMessage="Summary prompt is required."
             onContentErrorMessage="Content sample is required. Expected a string with one News article."
-            props={{
-                ...iconProps,
-            }}
+            props={{...iconProps}}
         />
 
-<DataModelPrompt
-        label="Bullet point summary"
-        onValidation={bulletPointValidation}
-        validated={bulletPointValidated}
-        setValidated={setBulletPointValidated}
-        prompt={bulletPointPrompt}
-        setPrompt={setBulletPointPrompt}
-        defaultPrompt={defaultBulletPointPrompt}
-        content={bulletPointContent}
-        setContent={setBulletPointContent}
-        defaultContent={JSON.stringify(sampleArticles, null, 2)}
-        response={bulletPointResponse}
-        onPromptErrorMessage="Bullet point prompt is required."
-        onContentErrorMessage="Content sample is required. Expected a string with one News article."
-        props={{...iconProps}}
-        />
-
-    <DataModelPrompt
-        label="Topic Name"
-        onValidation={topicNameValidation}
-        validated={topicNameValidated}
-        setValidated={setTopicNameValidated}
-        prompt={topicNamePrompt}
-        setPrompt={setTopicNamePrompt}
-        defaultPrompt={defaultTopicNamePrompt}
-        content={topicNameContent}
-        setContent={setTopicNameContent}
-        defaultContent={"politics, canada, immigration, refugees, economy"}
-        response={topicNameResponse}
-        onPromptErrorMessage="Topic name prompt is required."
-        onContentErrorMessage="Topic name is required. Expected a comma separated list of names."
-        props={{...iconProps}}
-        />
-
-        {/* <DataModelPrompt
+        <DataModelPrompt
             label="Bullet point summary"
             onValidation={bulletPointValidation}
-            onPromptErrorMessage="Bullet point prompt is required."
+            validated={bulletPointValidated}
+            setValidated={setBulletPointValidated}
+            validating={validating}
             prompt={bulletPointPrompt}
             setPrompt={setBulletPointPrompt}
             defaultPrompt={defaultBulletPointPrompt}
+            content={bulletPointContent}
+            setContent={setBulletPointContent}
             defaultContent={JSON.stringify(sampleArticles, null, 2)}
-            props={{
-                ...iconProps,
-            }}
-        /> */}
+            response={bulletPointResponse}
+            onPromptErrorMessage="Bullet point prompt is required."
+            onContentErrorMessage="Content sample is required. Expected a string with one News article."
+            props={{ ...iconProps }}
+        />
 
-        {/* <DataModelPrompt
+        <DataModelPrompt
             label="Topic Name"
             onValidation={topicNameValidation}
-            onPromptErrorMessage="Topic name prompt is required."
+            validated={topicNameValidated}
+            setValidated={setTopicNameValidated}
+            validating={validating}
             prompt={topicNamePrompt}
             setPrompt={setTopicNamePrompt}
             defaultPrompt={defaultTopicNamePrompt}
-            defaultContentSample={"test, test2, test3"}
-            props={{
-                ...iconProps,
-                rows: 3
-            }}
-        /> */}
-
+            content={topicNameContent}
+            setContent={setTopicNameContent}
+            defaultContent={defaultTopicNamePromptContent}
+            response={topicNameResponse}
+            onPromptErrorMessage="Topic name prompt is required."
+            onContentErrorMessage="Topic name is required. Expected a comma separated list of names."
+            props={{ ...iconProps }}
+        />
     </Col>
 }
 
@@ -992,7 +1055,7 @@ export default function DataModel({
     dataModelPersonalized,
     dataModelChatGPT,
     dataModelPrompts }: DataModelProps) {
-    console.log("Selected ", dataModelPrompts.modelName)
+    // console.log("Selected ", dataModelPrompts.modelName)
     return (
         <Card>
             <Card.Header>
@@ -1019,6 +1082,7 @@ export default function DataModel({
                         setSelectedModel={dataModelPersonalized.setSelectedModel}
                         availableModels={dataModelPersonalized.availableModels}
                         setAvailableModels={dataModelPersonalized.setAvailableModels}
+                        defaultPrompts={dataModelPersonalized.defaultPrompts}
                     />
 
                     <Col xs={12}>
@@ -1032,6 +1096,7 @@ export default function DataModel({
                         setAPIKey={dataModelChatGPT.setAPIKey}
                         serverValid={dataModelChatGPT.serverValid}
                         setServerValid={dataModelChatGPT.setServerValid}
+                        defaultPrompts={dataModelChatGPT.defaultPrompts}
                     />
 
                     <DataModelPrompts
@@ -1048,7 +1113,7 @@ export default function DataModel({
 
                         topicNamePrompt={dataModelPrompts.topicNamePrompt}
                         setTopicNamePrompt={dataModelPrompts.setTopicNamePrompt}
-
+                        defaultPrompts={dataModelPrompts.defaultPrompts}
                     />
                 </Row>
             </Card.Body>

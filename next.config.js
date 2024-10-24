@@ -26,6 +26,10 @@ const nextConfig = {
       allowedOrigins: ['134.117.214.172'],
     },
   },
+  publicRuntimeConfig: {
+    defaultTimeout: 120000,
+  },
+  
 };
 
 module.exports = nextConfig;

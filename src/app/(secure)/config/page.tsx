@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Form, Modal, Button, Container, Spinner } from "react-bootstrap";
 import axios, {  } from "axios";
 import { NavbarTop2 } from 'app/_components/navbars';
-import { BackEndConfig, defaultLLMPrompts } from "app/_components/ModelPersonalized";
+import { BackEndConfig, defaultLLMPrompts, LLMPrompts } from "app/_components/ModelPersonalized";
 import DataModel from "app/_components/ModelPersonalized";
 import { useRouter } from "next/navigation";
 import { Configuration, ModelType } from "../../_types/config.d";
@@ -29,8 +29,9 @@ const Config = () => {
         }
     }
 
+    const [defaultPrompts, setDefaultPrompts] = useState(defaultLLMPrompts);
     const [modelTypeRadio, setModelTypeRadio] = useState<ModelType>("Personalized");
-
+    
     // ChatGPT props
     const [gptApiKey, setGptApiKey] = useState("");
 
@@ -150,6 +151,7 @@ const Config = () => {
         );
     };
 
+    // Get configuration from current form.
     function getConfig() {
         let sendConfig: Configuration = {} as Configuration;
         if (modelTypeRadio == "ChatGPT") {
@@ -166,7 +168,14 @@ const Config = () => {
                 selectedModel: personalizedSelectedModel ?? undefined,
                 models: personalizedAvailableModels ?? undefined,
             }
-        } 
+        }
+        sendConfig.prompts = {
+            [modelName]: {
+                summary: summaryPrompt,
+                bullet_points: bulletPointPrompt,
+                topic_name: topicNamePrompt,
+            }
+        }
         sendConfig.article_summary_length = parseInt(summaryLen, 10);
         sendConfig.max_bullet_points = parseInt(maxBulletPoint, 10);
         sendConfig.spider_interval_seconds = parseInt(spiderIntervalSeconds, 10);
@@ -175,6 +184,7 @@ const Config = () => {
         return sendConfig;
     }
 
+    // Set configuration from backend data.
     async function setConfig({ config }: { config: Configuration }) {
         setModelTypeRadio(config.model.name);
         if (config.model.name == "ChatGPT") {
@@ -203,6 +213,42 @@ const Config = () => {
             if (selectedModel) {
                 setPersonalizedSelectedModel(selectedModel)
             }
+        }
+
+        // Set prompts
+        if (config.prompts !== undefined) {
+            let selectedModel = 'chatgpt'
+            if (config.model.name === "Personalized") {
+                selectedModel = config.model.selectedModel ?? 'chatgpt'
+            }
+            
+            if (selectedModel in config.prompts) {
+                const prompts = config.prompts[selectedModel];
+
+                if (prompts.hasOwnProperty("summary")) {
+                    setSummaryPrompt(prompts.summary);
+                }
+                if (prompts.hasOwnProperty("bullet_points")) {
+                    setBulletPointPrompt(prompts.bullet_points);
+                }
+                if (prompts.hasOwnProperty("topic_name")) {
+                    setTopicNamePrompt(prompts.topic_name);
+                }
+            }
+
+            let prompts: LLMPrompts = { 
+                ...defaultLLMPrompts,
+            }
+
+            Object.entries(config.prompts).forEach(([key, value]) => {
+                prompts[key] = {
+                    ...defaultLLMPrompts.default, 
+                    summary: value.summary,
+                    bulletPoint: value.bullet_points,
+                    topicName: value.topic_name,
+                }
+            });
+            setDefaultPrompts(prompts)
         }
         setsummaryLen(config.article_summary_length.toString());
         setmaxBulletPoint(config.max_bullet_points.toString());
@@ -236,22 +282,20 @@ const Config = () => {
         } else if (modelTypeRadio === "Personalized") {
             modelNameUpdate = personalizedSelectedModel ?? "gpt4all"
         }
-        if (defaultLLMPrompts.hasOwnProperty(modelNameUpdate)) {
-            console.log('blahblahblah')
-            setSummaryPrompt(defaultLLMPrompts[modelNameUpdate]['summary'])
-            setBulletPointPrompt(defaultLLMPrompts[modelNameUpdate]['bulletPoint'])
-            setTopicNamePrompt(defaultLLMPrompts[modelNameUpdate]['topicName'])
+        if (defaultPrompts.hasOwnProperty(modelNameUpdate)) {
+            setSummaryPrompt(defaultPrompts[modelNameUpdate]['summary'])
+            setBulletPointPrompt(defaultPrompts[modelNameUpdate]['bulletPoint'])
+            setTopicNamePrompt(defaultPrompts[modelNameUpdate]['topicName'])
         } else {
-            setSummaryPrompt(defaultLLMPrompts.default.summary)
-            setBulletPointPrompt(defaultLLMPrompts.default.bulletPoint)
-            setTopicNamePrompt(defaultLLMPrompts.default.topicName)
+            setSummaryPrompt(defaultPrompts.default.summary)
+            setBulletPointPrompt(defaultPrompts.default.bulletPoint)
+            setTopicNamePrompt(defaultPrompts.default.topicName)
         }
         setModelName(modelNameUpdate)
     }, [modelTypeRadio, personalizedSelectedModel])
 
-    async function validatePrompta(setResult: (v: string)=> void){
-    
-    }
+    async function validatePrompta(setResult: (v: string)=> void){}
+
     function validatePrompt(setResult: (v: string)=> void){
         const timerid = setTimeout(async ()=>{
             await validatePrompta(setResult)
@@ -294,6 +338,7 @@ const Config = () => {
                                                         setAPIKey: setGptApiKey,
                                                         serverValid: serverValid,
                                                         setServerValid: setServerValid,
+                                                        defaultPrompts: defaultPrompts,
                                                     }}
                                                     dataModelPersonalized={{
                                                         selected: modelTypeRadio,
@@ -310,6 +355,7 @@ const Config = () => {
                                                         setSelectedModel: setPersonalizedSelectedModel,
                                                         availableModels: personalizedAvailableModels,
                                                         setAvailableModels: setPersonalizedAvailableModels,
+                                                        defaultPrompts: defaultPrompts,
                                                     }}
                                                     dataModelPrompts={{
                                                         modelType: modelTypeRadio,
@@ -323,6 +369,7 @@ const Config = () => {
                                                         setBulletPointsPrompt: setBulletPointPrompt,
                                                         topicNamePrompt: topicNamePrompt,
                                                         setTopicNamePrompt: setTopicNamePrompt,
+                                                        defaultPrompts: defaultPrompts,
                                                     }}
                                                 />
 
