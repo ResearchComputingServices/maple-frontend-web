@@ -1,3 +1,7 @@
+import { LLMPrompts } from "app/_components/ModelPersonalized";
+import { set } from "react-hook-form";
+
+export type ModelType = "ChatGPT" | "Personalized";
 
 export interface ChatGPTConfig {
     name: "ChatGPT";
@@ -12,9 +16,15 @@ export interface PersonalizedConfig {
     selectedModel?: string;
     models?: string[];
 }
+export interface ConfigPrompt {
+    summary: string,
+    bullet_points: string,
+    topic_name: string,
+}
 
 export interface Configuration {
     model: ChatGPTConfig | PersonalizedConfig;
+    prompts: Record<string, ConfigPrompt>;
     article_summary_length: number;
     max_bullet_points: number;
     model_iteration_persistence_days: number;
@@ -66,7 +76,7 @@ export function instanceOfLLMCapabilities(object: any): instanceOfLLMCapabilitie
 
 export interface ModelPersonalizedProps {
     selected: string,
-    setSelected: (value: string) => void,
+    setSelected: (value: ModelType) => void,
     serverValid: boolean, 
     setServerValid: (value: boolean) => void,
     host?: string,
@@ -79,21 +89,39 @@ export interface ModelPersonalizedProps {
     setSelectedModel?: (v: string) => void,
     availableModels?: string[] | null,
     setAvailableModels?: (v: string[]) => void,
+    defaultPrompts: LLMPrompts,
 }
 
 export interface ModelChatGPTProps {
     selected: string,
-    setSelected: (value: string) => void,
+    setSelected: (value: ModelType) => void,
     APIKey?: string,
     setAPIKey?: (gptApiKey: string) => void,
     serverValid: boolean, 
     setServerValid: (value: boolean) => void,
+    defaultPrompts: LLMPrompts,
+}
+
+export interface DataModelPromptsProps {
+    modelType: ModelType,
+    host?: string,
+    port?: string,
+    api_key?: string,
+    modelName: string,
+    summaryPrompt: string,
+    setSummaryPrompt: (v:string)=>void,
+    bulletPointsPrompt: string,
+    setBulletPointsPrompt: (v:string)=>void,
+    topicNamePrompt: string,
+    setTopicNamePrompt: (v:string)=>void,
+    defaultPrompts: LLMPrompts,
 }
 
 
 export interface DataModelProps {
     dataModelPersonalized: ModelPersonalizedProps,
-    dataModelChatGPT: ModelChatGPTProps
+    dataModelChatGPT: ModelChatGPTProps,
+    dataModelPrompts: DataModelPromptsProps,
 }
 
 
@@ -119,7 +147,7 @@ export interface validateLLMServerProps {
     api_key?: string
 }
 
-export interface testLLMServerProps extends validateLLMServerProps {
-    model_type: string,
-    question: string,
-}
+// export interface testLLMServerProps extends validateLLMServerProps {
+//     model_type: string,
+//     question: string,
+// }
