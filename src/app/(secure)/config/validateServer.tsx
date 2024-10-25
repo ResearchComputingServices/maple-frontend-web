@@ -54,87 +54,12 @@ export interface TopicNameProps extends Omit<ArticleProps, 'articles'> {
     max_tokens?: number,
 }
 
-// export async function LLMServerArticleSummary({host, port, api_key, timeout, articles, model_type, prompt, max_tokens}: ArticleSummaryProps){
-//     let options = await buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
-//     console.log("options", options)
-//     // options.responseType = 'stream'
-//     return await axios.post(
-//         // host + ":" + port + "/llm/article_summary",
-//         '/config/summary',
-//         {
-//             host: host,
-//             port: port,
-//             api_key: api_key,
-//             prompt: prompt,
-//             model_type: model_type,
-//             articles: articles,
-//             max_tokens: max_tokens || 512,
-//         },
-//         options = options,
-//     )
-//         .then((response) => {
-//             // const stream = response.data
-//             // stream.on('data', data => {console.log(data)});
-//             // stream.on('end', () => {console.log('end')});
-//             // response.data.pipe(response.data)
-//             console.log(response)
-//             return response.data
-//         })
-//         .catch((error) => {
-//             console.log("error in request.", error)
-//             return [`Could not retrieve the article summary.\n${error}`]
-//         })
-
-// }
-
-// export class StreamingResponse extends Response {
-//     constructor(res: ReadableStream<any>, init?: ResponseInit) {
-//         super(res as any, {
-//             ...init,
-//             status: 200,
-//             headers: {
-//                 ...init?.headers,
-//             }
-//         });
-//     }
-// }
-
 interface ReadableStreamResponse {
     status?: 'failed' | 'success' | 'waiting',
     type: 'response' | 'message',
     message: string,
 }
 
-// export async function LLMServerArticleSummaryStream({host, port, api_key, timeout, articles, model_type, prompt, max_tokens}: ArticleSummaryProps){
-    
-//     // let options = buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout: timeout || defaultTimeout})
-
-//     try {
-        
-
-//         const iterator = fetchSummaryResponse({host, port, api_key, timeout, articles, model_type, prompt, max_tokens})
-//         console.log('iterator', iterator)
-//         const stream = new ReadableStream({
-//             async pull(controller) {
-//                 const encoder = new TextEncoder();
-//                 const {value, done} = await iterator.next()
-//                 if (done) {controller.close()}
-//                 else {
-//                     console.log('pull', value)
-//                     const encoded = encoder.encode(JSON.stringify(value));
-//                     controller.enqueue(encoded);
-//                     console.log('sent encoded')
-//                 }
-//             }
-//         })
-//         console.log('stream', stream)   
-//         return new Response(await stream)
-
-//     } catch (error) {
-//         console.log("Error in request.", error);
-//         return [`Could not retrieve the article summary stream.\n${error}`];
-//     }
-// }
 
 
 export async function LLMServerBulletPoint({host, port, api_key, timeout, articles, model_type, prompt, max_tokens}: ArticleSummaryProps){

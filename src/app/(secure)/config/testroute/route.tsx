@@ -35,12 +35,6 @@ function iteratorToStream(iterator: any) {
       yield data
       await sleep(50)
     }
-    
-    // yield encoder.encode('<p>One</p>')
-    // await sleep(200)
-    // yield encoder.encode('<p>Two</p>')
-    // await sleep(200)
-    // yield encoder.encode('<p>Three</p>')
   }
    
   export async function GET() {

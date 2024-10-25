@@ -749,6 +749,9 @@ export function DataModelPrompts({
     const overlayProps = { delay: { show: 250, hide: 400 } }
 
     const [validating, setValidating] = useState<boolean>(false)
+    const [validatingSummary, setValidatingSummary] = useState<boolean>(false)
+    const [validatingTopicName, setValidatingTopicName] = useState<boolean>(false)
+    const [validatingBulletPoint, setValidatingBulletPoint] = useState<boolean>(false)
     const [allValidated, setAllValidated] = useState<boolean>(false)
     const [validateAllEnabled, setValidateAllEnabled] = useState<boolean>(false)
 
@@ -780,7 +783,7 @@ export function DataModelPrompts({
     function summaryValidation() {
         setSummaryValidated(false)
         setSummaryResponse(null)
-        setValidating(true)
+        setValidatingSummary(true)
         async function asyncSummaryValidation() {
             try {
                 const response = await fetch(
@@ -828,7 +831,7 @@ export function DataModelPrompts({
                 setSummaryResponse("Error occured while retrieving response.")
                 setSummaryValidated(false)
             } finally {
-                setValidating(false) // TODO remove
+                setValidatingSummary(false) // TODO remove
             } 
         }
         asyncSummaryValidation()
@@ -837,7 +840,7 @@ export function DataModelPrompts({
     function bulletPointValidation() {
         setBulletPointValidated(false)
         setBulletPointResponse(null)
-        setValidating(true)
+        setValidatingBulletPoint(true)
         async function asyncBulletPointValidation() {
             try {
                 const response = await fetch(
@@ -885,53 +888,96 @@ export function DataModelPrompts({
                 setBulletPointResponse("Error occured while retrieving response.")
                 setBulletPointValidated(false)
             } finally {
-                setValidating(false) // TODO remove
+                setValidatingBulletPoint(false) // TODO remove
             }
         }
         asyncBulletPointValidation()
     }
 
     function topicNameValidation() {
-        console.log("Validating topic name")
         setTopicNameValidated(false)
         setTopicNameResponse(null)
-        setValidating(true)
+        setValidatingTopicName(true)
         async function asyncTopicNameValidation() {
-            LLMServerTopicName({
-                host: host!,
-                port: port ? String(port) : "80",
-                api_key: api_key!,
-                model_type: modelName,
-                prompt: topicNamePrompt,
-                keywords: topicNameContent.split(",").map(v => v.trim()),
-            })
-            .then(response => {
-                console.log("response for topic name", response)
-                setTopicNameResponse(response)
-                setTopicNameValidated(true)
-                return response
-            })
-            .catch(error => {
-                console.error(error)
-                setTopicNameResponse("Failed retrieving response.")
-                setTopicNameValidated(false)
-            })
-            .finally(() => setValidating(false))
+            try {
+                const response = await fetch(
+                    '/config/topicname',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            host: host,
+                            port: port,
+                            api_key: api_key,
+                            prompt: topicNamePrompt,
+                            model_type: modelName,
+                            keywords: topicNameContent.split(",").map(v => v.trim()),
+                            max_tokens: 512,
+                        })
+                    }
+                )
+                if (!response.ok) {
+                    setTopicNameValidated(false)
+                    setTopicNameResponse("Failed retrieving response.")
+                    return
+                }
+                const reader = response.body!.getReader()
+                const decoder = new TextDecoder()
+                for (;;) {
+                    const { done, value } = await reader.read()
+                    if (done) {
+                        break
+                    }
+                    const chunk = JSON.parse(decoder.decode(value))
+                    if (chunk.status === "success") {
+                        setTopicNameResponse(chunk.message)
+                        setTopicNameValidated(true)
+                    } else if (chunk.status === "waiting") {
+                        setTopicNameResponse(chunk.message)
+                    } else {
+                        setTopicNameResponse(JSON.stringify(chunk.message))
+                        setTopicNameValidated(false)
+                    }
+                }
+            } catch (error) {
+                setBulletPointResponse("Error occured while retrieving response.")
+                setBulletPointValidated(false)
+            } finally {
+                setValidatingTopicName(false) // TODO remove
+            }
+            
         }
         asyncTopicNameValidation()
     }
 
+    useEffect(() => {
+        setValidating(
+            Array.from(
+                [validatingSummary, validatingBulletPoint, validatingTopicName]
+            ).some((v)=>v)
+        )
+    },[validatingSummary,validatingBulletPoint,validatingTopicName])
+
     // Enable validation of prompts only when all prompts and content are filled
     useEffect(() => {
-        setValidateAllEnabled([
-            summaryPrompt,
-            summaryContent,
-            bulletPointPrompt,
-            bulletPointContent,
-            topicNamePrompt,
-            topicNameContent,
-        ].filter(v => v === "").length === 0)
+        
+        if (validating) {
+            setValidateAllEnabled(false )
+        } else {
+            setValidateAllEnabled([
+                summaryPrompt,
+                summaryContent,
+                bulletPointPrompt,
+                bulletPointContent,
+                topicNamePrompt,
+                topicNameContent,
+            ].filter(v => v === "").length === 0)
+        }
+       
     }, [
+        validating,
         summaryPrompt,
         summaryContent,
         bulletPointPrompt,

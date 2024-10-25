@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Form, Modal, Button, Container, Spinner } from "react-bootstrap";
-import axios, {  } from "axios";
+import axios, { } from "axios";
 import { NavbarTop2 } from 'app/_components/navbars';
 import { BackEndConfig, defaultLLMPrompts, LLMPrompts } from "app/_components/ModelPersonalized";
 import DataModel from "app/_components/ModelPersonalized";
@@ -31,7 +31,7 @@ const Config = () => {
 
     const [defaultPrompts, setDefaultPrompts] = useState(defaultLLMPrompts);
     const [modelTypeRadio, setModelTypeRadio] = useState<ModelType>("Personalized");
-    
+
     // ChatGPT props
     const [gptApiKey, setGptApiKey] = useState("");
 
@@ -48,7 +48,7 @@ const Config = () => {
     const [summaryValidated, setSummaryValidated] = useState(false);
     const [bulletPointPrompt, setBulletPointPrompt] = useState('');
     const [topicNamePrompt, setTopicNamePrompt] = useState('');
-    
+
     // Backend Config props
     const [summaryLen, setsummaryLen] = useState("");
     const [maxBulletPoint, setmaxBulletPoint] = useState("");
@@ -73,7 +73,7 @@ const Config = () => {
                     url: address,
                 };
                 const resp = await axios(options);
-                setConfig({config: {...resp.data}})
+                setConfig({ config: { ...resp.data } })
                 // console.log("DEBUG Axios:", resp.data);
 
                 setShowModalSubmit(true);
@@ -86,8 +86,8 @@ const Config = () => {
                 if (err.code! === "ERR_BAD_REQUEST") {
                     console.log("test")
                     setModalWarningChildren(<>
-                     <h5>{err.message}</h5>
-                     {err.response.data.message.map((v: string)=> <p>{v}</p>)}
+                        <h5>{err.message}</h5>
+                        {err.response.data.message.map((v: string) => <p>{v}</p>)}
                     </>)
                     setShowModalWarning(true)
                 }
@@ -106,7 +106,7 @@ const Config = () => {
                 size="lg"
                 aria-labelledby="contained-modal-title-vcenter"
                 centered
-                onHide={()=>{
+                onHide={() => {
                     console.log('closing')
                     setShowModalSubmit(false)
                     router.push('/config')
@@ -195,10 +195,10 @@ const Config = () => {
             setPersonalizedHost(config.model.host);
             setPersonalizedPort(config.model.port);
             setPersonalizedAvailableModels(config.model.models ?? null)
-            
+
             let selectedModel: string | null = null;
             if (config.model.selectedModel) {
-                if (config.model.models!.includes(config.model.selectedModel)){
+                if (config.model.models!.includes(config.model.selectedModel)) {
                     selectedModel = config.model.selectedModel
                 } else {
                     if (config.model.models!.length > 0) {
@@ -221,7 +221,7 @@ const Config = () => {
             if (config.model.name === "Personalized") {
                 selectedModel = config.model.selectedModel ?? 'chatgpt'
             }
-            
+
             if (selectedModel in config.prompts) {
                 const prompts = config.prompts[selectedModel];
 
@@ -236,13 +236,13 @@ const Config = () => {
                 }
             }
 
-            let prompts: LLMPrompts = { 
+            let prompts: LLMPrompts = {
                 ...defaultLLMPrompts,
             }
 
             Object.entries(config.prompts).forEach(([key, value]) => {
                 prompts[key] = {
-                    ...defaultLLMPrompts.default, 
+                    ...defaultLLMPrompts.default,
                     summary: value.summary,
                     bulletPoint: value.bullet_points,
                     topicName: value.topic_name,
@@ -294,10 +294,10 @@ const Config = () => {
         setModelName(modelNameUpdate)
     }, [modelTypeRadio, personalizedSelectedModel])
 
-    async function validatePrompta(setResult: (v: string)=> void){}
+    async function validatePrompta(setResult: (v: string) => void) { }
 
-    function validatePrompt(setResult: (v: string)=> void){
-        const timerid = setTimeout(async ()=>{
+    function validatePrompt(setResult: (v: string) => void) {
+        const timerid = setTimeout(async () => {
             await validatePrompta(setResult)
         }, 1000)
         clearTimeout(timerid)
@@ -325,9 +325,9 @@ const Config = () => {
                                     </Card.Header>
 
                                     <Card.Body >
-                                        <Form 
-                                        onSubmit={handleSubmit} 
-                                        noValidate
+                                        <Form
+                                            onSubmit={handleSubmit}
+                                            noValidate
                                         >
                                             <Row className="align-items-center gap-3">
                                                 <DataModel
@@ -389,12 +389,12 @@ const Config = () => {
                                                         <Button variant="warning" onClick={() => router.push("/")}>
                                                             Cancel
                                                         </Button>
-                                                        
-                                                        <Button 
-                                                        variant="success" 
-                                                        type="submit" 
-                                                        role="button" 
-                                                        disabled={serverValid ? false : true }>
+
+                                                        <Button
+                                                            variant="success"
+                                                            type="submit"
+                                                            role="button"
+                                                            disabled={serverValid ? false : true}>
                                                             Submit
                                                         </Button>
                                                     </div>

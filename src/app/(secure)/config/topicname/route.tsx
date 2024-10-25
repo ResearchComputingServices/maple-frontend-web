@@ -1,7 +1,7 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import { ArticleSummaryProps, buildLLMServerConfig } from "../validateServer";
+import { ArticleSummaryProps, buildLLMServerConfig, TopicNameProps } from "../validateServer";
 import axios from "axios";
 import getConfig from 'next/config'
 
@@ -11,16 +11,16 @@ const defaultTimeout = publicRuntimeConfig.defaultTimeout || 120;
 const encoder = new TextEncoder();
 
 
-async function* fetchSummaryResponse({ host, port, prompt, model_type, articles, max_tokens, timeout, api_key }: ArticleSummaryProps) {
+async function* fetchTopicNameResponse({ host, port, prompt, model_type, keywords, max_tokens, timeout, api_key }: TopicNameProps) {
 
     const options = await buildLLMServerConfig({ host: host, port: port, api_key: api_key, timeout: timeout || defaultTimeout })
 
     const response = axios.post(
-        host + ":" + port + "/llm/article_summary",
+        host + ":" + port + "/llm/topic_name",
         {
             'prompt': prompt,
             'model_type': model_type,
-            'articles': articles,
+            'keywords': keywords,
             'max_tokens': max_tokens || 512,
         },
         options
@@ -32,7 +32,7 @@ async function* fetchSummaryResponse({ host, port, prompt, model_type, articles,
         const result = await response
 
         if (result.status === 200) {
-            yield { type: 'response', status: 'success', message: result.data[0] }
+            yield { type: 'response', status: 'success', message: result.data }
         }
         else {
             yield { type: 'response', status: 'failed', message: result.data }
@@ -77,7 +77,7 @@ class StreamingResponse extends NextResponse {
  */
 export async function POST(request: Request) {
     const body = await request.json()
-    const iterator = fetchSummaryResponse({ ...body })
+    const iterator = fetchTopicNameResponse({ ...body })
     const stream = makeStream(iterator)
     return new Response(await stream)
 }

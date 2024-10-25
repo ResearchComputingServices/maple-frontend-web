@@ -11,10 +11,10 @@ const defaultTimeout = publicRuntimeConfig.defaultTimeout || 120;
 const encoder = new TextEncoder();
 
 
-async function* fetchBulletPointResponse ({host, port, prompt, model_type, articles, max_tokens, timeout, api_key}: ArticleSummaryProps) { 
-    
-    const options = await buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
-    
+async function* fetchBulletPointResponse({ host, port, prompt, model_type, articles, max_tokens, timeout, api_key }: ArticleSummaryProps) {
+
+    const options = await buildLLMServerConfig({ host: host, port: port, api_key: api_key, timeout: timeout || defaultTimeout })
+
     const response = axios.post(
         host + ":" + port + "/llm/bullet_point",
         {
@@ -25,25 +25,25 @@ async function* fetchBulletPointResponse ({host, port, prompt, model_type, artic
         },
         options
     )
-    
-    yield {type: 'message', status: 'waiting', message: 'Request sent. Waiting for response...'}
-    
+
+    yield { type: 'message', status: 'waiting', message: 'Request sent. Waiting for response...' }
+
     try {
         const result = await response
 
         if (result.status === 200) {
-            yield {type: 'response', status: 'success', message: result.data}
+            yield { type: 'response', status: 'success', message: result.data }
         }
         else {
-            yield {type: 'response', status: 'failed', message: result.data}
+            yield { type: 'response', status: 'failed', message: result.data }
         }
     } catch (error) {
-        yield {type: 'response', status: 'failed', message: error}
+        yield { type: 'response', status: 'failed', message: error }
     }
-    
+
 }
 
-export const makeStream = (generator:any) => {
+export const makeStream = (generator: any) => {
     return new ReadableStream<any>({
         async pull(controller) {
             const { value, done } = await generator.next()
@@ -77,9 +77,7 @@ class StreamingResponse extends NextResponse {
  */
 export async function POST(request: Request) {
     const body = await request.json()
-    console.log('body', body)
-    const iterator = fetchBulletPointResponse({...body})
-    console.log('iterator', iterator)
+    const iterator = fetchBulletPointResponse({ ...body })
     const stream = makeStream(iterator)
     return new Response(await stream)
 }
