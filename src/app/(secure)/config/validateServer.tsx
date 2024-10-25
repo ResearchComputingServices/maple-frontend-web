@@ -49,7 +49,7 @@ export interface ArticleSummaryProps extends ArticleProps {
     max_tokens?: number,
 }
 
-interface TopicNameProps extends Omit<ArticleProps, 'articles'> {
+export interface TopicNameProps extends Omit<ArticleProps, 'articles'> {
     keywords: string[],
     max_tokens?: number,
 }

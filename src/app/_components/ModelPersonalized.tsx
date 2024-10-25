@@ -828,41 +828,65 @@ export function DataModelPrompts({
                 setSummaryResponse("Error occured while retrieving response.")
                 setSummaryValidated(false)
             } finally {
-                setValidating(false)
+                setValidating(false) // TODO remove
             } 
         }
         asyncSummaryValidation()
     }
 
     function bulletPointValidation() {
-        console.log("Validating bullet point")
         setBulletPointValidated(false)
         setBulletPointResponse(null)
-        // TODO: Add validation here
         setValidating(true)
         async function asyncBulletPointValidation() {
-            LLMServerBulletPoint({
-                host: host!,
-                port: port ? String(port) : "80",
-                api_key: api_key!,
-                model_type: modelName,
-                prompt: bulletPointPrompt,
-                articles: [bulletPointContent],
-            })
-            .then(response => {
-                console.log("response for bullet point", response)
-                if (Array.isArray(response) && response.length > 0) {
-                    setBulletPointResponse(response[0]) // TODO
-                    setBulletPointValidated(true)
+            try {
+                const response = await fetch(
+                    '/config/bulletpoint',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            host: host,
+                            port: port,
+                            api_key: api_key,
+                            prompt: bulletPointPrompt,
+                            model_type: modelName,
+                            articles: [bulletPointContent],
+                            max_tokens: 512,
+                        })
+                    }
+                )
+                if (!response.ok) {
+                    setBulletPointValidated(false)
+                    setBulletPointResponse("Failed retrieving response.")
+                    return
                 }
-                return response
-            })
-            .catch(error => {
-                console.error(error)
-                setBulletPointResponse("Failed retrieving response.")
+                const reader = response.body!.getReader()
+                const decoder = new TextDecoder()
+                for (;;) {
+                    const { done, value } = await reader.read()
+                    if (done) {
+                        break
+                    }
+                    const chunk = JSON.parse(decoder.decode(value))
+                    if (chunk.status === "success") {
+                        setBulletPointResponse(chunk.message)
+                        setBulletPointValidated(true)
+                    } else if (chunk.status === "waiting") {
+                        setBulletPointResponse(chunk.message)
+                    } else {
+                        setBulletPointResponse(JSON.stringify(chunk.message))
+                        setBulletPointValidated(false)
+                    }
+                }
+            } catch (error) {
+                setBulletPointResponse("Error occured while retrieving response.")
                 setBulletPointValidated(false)
-            })
-            .finally(() => setValidating(false))
+            } finally {
+                setValidating(false) // TODO remove
+            }
         }
         asyncBulletPointValidation()
     }

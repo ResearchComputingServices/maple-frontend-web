@@ -11,12 +11,12 @@ const defaultTimeout = publicRuntimeConfig.defaultTimeout || 120;
 const encoder = new TextEncoder();
 
 
-async function* fetchSummaryResponse ({host, port, prompt, model_type, articles, max_tokens, timeout, api_key}: ArticleSummaryProps) { 
+async function* fetchBulletPointResponse ({host, port, prompt, model_type, articles, max_tokens, timeout, api_key}: ArticleSummaryProps) { 
     
     const options = await buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
     
     const response = axios.post(
-        host + ":" + port + "/llm/article_summary",
+        host + ":" + port + "/llm/bullet_point",
         {
             'prompt': prompt,
             'model_type': model_type,
@@ -30,9 +30,9 @@ async function* fetchSummaryResponse ({host, port, prompt, model_type, articles,
     
     try {
         const result = await response
-    
+
         if (result.status === 200) {
-            yield {type: 'response', status: 'success', message: result.data[0]}
+            yield {type: 'response', status: 'success', message: result.data}
         }
         else {
             yield {type: 'response', status: 'failed', message: result.data}
@@ -77,7 +77,9 @@ class StreamingResponse extends NextResponse {
  */
 export async function POST(request: Request) {
     const body = await request.json()
-    const iterator = fetchSummaryResponse({...body})
+    console.log('body', body)
+    const iterator = fetchBulletPointResponse({...body})
+    console.log('iterator', iterator)
     const stream = makeStream(iterator)
     return new Response(await stream)
 }

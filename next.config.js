@@ -27,7 +27,7 @@ const nextConfig = {
     },
   },
   publicRuntimeConfig: {
-    defaultTimeout: 120000,
+    defaultTimeout: 500000,
   },
   
 };
