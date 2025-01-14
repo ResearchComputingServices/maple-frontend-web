@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Form, Modal, Button, Container, Spinner } from "react-bootstrap";
-import axios, {  } from "axios";
+import axios, { } from "axios";
 import { NavbarTop2 } from 'app/_components/navbars';
-import { BackEndConfig } from "app/_components/ModelPersonalized";
+import { BackEndConfig, defaultLLMPrompts, LLMPrompts } from "app/_components/ModelPersonalized";
 import DataModel from "app/_components/ModelPersonalized";
 import { useRouter } from "next/navigation";
-import { Configuration } from "../../_types/config.d";
+import { Configuration, ModelType } from "../../_types/config.d";
 
 const baseApiUrl = process.env.PATH_URL_BACKEND_REMOTE;
 const configEndpoint = "/config";
@@ -29,7 +29,8 @@ const Config = () => {
         }
     }
 
-    const [modelTypeRadio, setModelTypeRadio] = useState("Personalized");
+    const [defaultPrompts, setDefaultPrompts] = useState(defaultLLMPrompts);
+    const [modelTypeRadio, setModelTypeRadio] = useState<ModelType>("Personalized");
 
     // ChatGPT props
     const [gptApiKey, setGptApiKey] = useState("");
@@ -41,6 +42,12 @@ const Config = () => {
     const [personalizedApiKey, setPersonalizedApiKey] = useState("");
     const [personalizedSelectedModel, setPersonalizedSelectedModel] = useState<string | null>(null)
     const [personalizedAvailableModels, setPersonalizedAvailableModels] = useState<string[] | null>(null)
+    const [modelName, setModelName] = useState<string>("");
+
+    const [summaryPrompt, setSummaryPrompt] = useState('');
+    const [summaryValidated, setSummaryValidated] = useState(false);
+    const [bulletPointPrompt, setBulletPointPrompt] = useState('');
+    const [topicNamePrompt, setTopicNamePrompt] = useState('');
 
     // Backend Config props
     const [summaryLen, setsummaryLen] = useState("");
@@ -66,7 +73,7 @@ const Config = () => {
                     url: address,
                 };
                 const resp = await axios(options);
-                setConfig({config: {...resp.data}})
+                setConfig({ config: { ...resp.data } })
                 // console.log("DEBUG Axios:", resp.data);
 
                 setShowModalSubmit(true);
@@ -79,8 +86,8 @@ const Config = () => {
                 if (err.code! === "ERR_BAD_REQUEST") {
                     console.log("test")
                     setModalWarningChildren(<>
-                     <h5>{err.message}</h5>
-                     {err.response.data.message.map((v: string)=> <p>{v}</p>)}
+                        <h5>{err.message}</h5>
+                        {err.response.data.message.map((v: string) => <p>{v}</p>)}
                     </>)
                     setShowModalWarning(true)
                 }
@@ -99,7 +106,7 @@ const Config = () => {
                 size="lg"
                 aria-labelledby="contained-modal-title-vcenter"
                 centered
-                onHide={()=>{
+                onHide={() => {
                     console.log('closing')
                     setShowModalSubmit(false)
                     router.push('/config')
@@ -144,6 +151,7 @@ const Config = () => {
         );
     };
 
+    // Get configuration from current form.
     function getConfig() {
         let sendConfig: Configuration = {} as Configuration;
         if (modelTypeRadio == "ChatGPT") {
@@ -160,7 +168,14 @@ const Config = () => {
                 selectedModel: personalizedSelectedModel ?? undefined,
                 models: personalizedAvailableModels ?? undefined,
             }
-        } 
+        }
+        sendConfig.prompts = {
+            [modelName]: {
+                summary: summaryPrompt,
+                bullet_points: bulletPointPrompt,
+                topic_name: topicNamePrompt,
+            }
+        }
         sendConfig.article_summary_length = parseInt(summaryLen, 10);
         sendConfig.max_bullet_points = parseInt(maxBulletPoint, 10);
         sendConfig.spider_interval_seconds = parseInt(spiderIntervalSeconds, 10);
@@ -169,6 +184,7 @@ const Config = () => {
         return sendConfig;
     }
 
+    // Set configuration from backend data.
     async function setConfig({ config }: { config: Configuration }) {
         setModelTypeRadio(config.model.name);
         if (config.model.name == "ChatGPT") {
@@ -179,10 +195,10 @@ const Config = () => {
             setPersonalizedHost(config.model.host);
             setPersonalizedPort(config.model.port);
             setPersonalizedAvailableModels(config.model.models ?? null)
-            
+
             let selectedModel: string | null = null;
             if (config.model.selectedModel) {
-                if (config.model.models!.includes(config.model.selectedModel)){
+                if (config.model.models!.includes(config.model.selectedModel)) {
                     selectedModel = config.model.selectedModel
                 } else {
                     if (config.model.models!.length > 0) {
@@ -197,6 +213,42 @@ const Config = () => {
             if (selectedModel) {
                 setPersonalizedSelectedModel(selectedModel)
             }
+        }
+
+        // Set prompts
+        if (config.prompts !== undefined) {
+            let selectedModel = 'chatgpt'
+            if (config.model.name === "Personalized") {
+                selectedModel = config.model.selectedModel ?? 'chatgpt'
+            }
+
+            if (selectedModel in config.prompts) {
+                const prompts = config.prompts[selectedModel];
+
+                if (prompts.hasOwnProperty("summary")) {
+                    setSummaryPrompt(prompts.summary);
+                }
+                if (prompts.hasOwnProperty("bullet_points")) {
+                    setBulletPointPrompt(prompts.bullet_points);
+                }
+                if (prompts.hasOwnProperty("topic_name")) {
+                    setTopicNamePrompt(prompts.topic_name);
+                }
+            }
+
+            let prompts: LLMPrompts = {
+                ...defaultLLMPrompts,
+            }
+
+            Object.entries(config.prompts).forEach(([key, value]) => {
+                prompts[key] = {
+                    ...defaultLLMPrompts.default,
+                    summary: value.summary,
+                    bulletPoint: value.bullet_points,
+                    topicName: value.topic_name,
+                }
+            });
+            setDefaultPrompts(prompts)
         }
         setsummaryLen(config.article_summary_length.toString());
         setmaxBulletPoint(config.max_bullet_points.toString());
@@ -222,6 +274,35 @@ const Config = () => {
         fetchSetConfig();
     }, [])
 
+    // Set model name based on radio button selection and personalized model selection
+    useEffect(() => {
+        let modelNameUpdate = "gpt4all"
+        if (modelTypeRadio === "ChatGPT") {
+            modelNameUpdate = "chatgpt"
+        } else if (modelTypeRadio === "Personalized") {
+            modelNameUpdate = personalizedSelectedModel ?? "gpt4all"
+        }
+        if (defaultPrompts.hasOwnProperty(modelNameUpdate)) {
+            setSummaryPrompt(defaultPrompts[modelNameUpdate]['summary'])
+            setBulletPointPrompt(defaultPrompts[modelNameUpdate]['bulletPoint'])
+            setTopicNamePrompt(defaultPrompts[modelNameUpdate]['topicName'])
+        } else {
+            setSummaryPrompt(defaultPrompts.default.summary)
+            setBulletPointPrompt(defaultPrompts.default.bulletPoint)
+            setTopicNamePrompt(defaultPrompts.default.topicName)
+        }
+        setModelName(modelNameUpdate)
+    }, [modelTypeRadio, personalizedSelectedModel])
+
+    async function validatePrompta(setResult: (v: string) => void) { }
+
+    function validatePrompt(setResult: (v: string) => void) {
+        const timerid = setTimeout(async () => {
+            await validatePrompta(setResult)
+        }, 1000)
+        clearTimeout(timerid)
+    }
+
     return (
 
         <div>
@@ -244,9 +325,9 @@ const Config = () => {
                                     </Card.Header>
 
                                     <Card.Body >
-                                        <Form 
-                                        onSubmit={handleSubmit} 
-                                        noValidate
+                                        <Form
+                                            onSubmit={handleSubmit}
+                                            noValidate
                                         >
                                             <Row className="align-items-center gap-3">
                                                 <DataModel
@@ -257,6 +338,7 @@ const Config = () => {
                                                         setAPIKey: setGptApiKey,
                                                         serverValid: serverValid,
                                                         setServerValid: setServerValid,
+                                                        defaultPrompts: defaultPrompts,
                                                     }}
                                                     dataModelPersonalized={{
                                                         selected: modelTypeRadio,
@@ -273,6 +355,21 @@ const Config = () => {
                                                         setSelectedModel: setPersonalizedSelectedModel,
                                                         availableModels: personalizedAvailableModels,
                                                         setAvailableModels: setPersonalizedAvailableModels,
+                                                        defaultPrompts: defaultPrompts,
+                                                    }}
+                                                    dataModelPrompts={{
+                                                        modelType: modelTypeRadio,
+                                                        modelName: modelName,
+                                                        host: personalizedHost,
+                                                        port: personalizedPort,
+                                                        api_key: personalizedApiKey,
+                                                        summaryPrompt: summaryPrompt,
+                                                        setSummaryPrompt: setSummaryPrompt,
+                                                        bulletPointsPrompt: bulletPointPrompt,
+                                                        setBulletPointsPrompt: setBulletPointPrompt,
+                                                        topicNamePrompt: topicNamePrompt,
+                                                        setTopicNamePrompt: setTopicNamePrompt,
+                                                        defaultPrompts: defaultPrompts,
                                                     }}
                                                 />
 
@@ -292,12 +389,12 @@ const Config = () => {
                                                         <Button variant="warning" onClick={() => router.push("/")}>
                                                             Cancel
                                                         </Button>
-                                                        
-                                                        <Button 
-                                                        variant="success" 
-                                                        type="submit" 
-                                                        role="button" 
-                                                        disabled={serverValid ? false : true }>
+
+                                                        <Button
+                                                            variant="success"
+                                                            type="submit"
+                                                            role="button"
+                                                            disabled={serverValid ? false : true}>
                                                             Submit
                                                         </Button>
                                                     </div>
