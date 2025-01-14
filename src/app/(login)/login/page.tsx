@@ -1,12 +1,9 @@
 'use client';
-
+import { signIn } from 'next-auth/react';
 import { Row, Col, Card, Form, Image, Button } from 'react-bootstrap';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { useSearchParams, useRouter } from "next/navigation";
-import CryptoJS from 'crypto-js';
-
-const LOGIN_CODE = process.env.LOGIN_CODE;
 
 export default Login;
 
@@ -25,19 +22,31 @@ function Login() {
     };
 
     async function onSubmit({ username, password }: any) {
-        const usrCipher  = CryptoJS.SHA256(username).toString();
-        const pwdCipher  = CryptoJS.SHA256(password).toString();
-        if(usrCipher == LOGIN_CODE && pwdCipher == LOGIN_CODE) {
-            router.push('/config');
-        } else {
-            alert("Incorrect Username or Password");
+        try {
+            const response: any = await signIn('credentials', {
+                username,
+                password,
+                redirect: false,
+            });
+            if (!response?.error) {
+                router.push('/config');
+                router.refresh();
+            }
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // Process response here
+            console.log('Login Successful', response);
+        } catch (error: any) {
+            console.error('Login Failed:', error);
         }
     }
 
     return (
         <div>
             <Row className="align-items-center justify-content-center g-0 min-vh-100">
-            
+
                 <Col xxl={4} lg={4} md={4} xs={12} className="py-8 py-xl-0">
                     <Card className="smooth-shadow-md">
                         <Card.Header className="p-4">
@@ -68,10 +77,10 @@ function Login() {
                                             Sign In
                                         </button>
                                         <div className="d-md-flex justify-content-between mt-4">
-                                        <div className="mb-2 mb-md-0">
-                                            <Link href="/" className="fs-5">Cancel </Link>
+                                            <div className="mb-2 mb-md-0">
+                                                <Link href="/" className="fs-5">Cancel </Link>
+                                            </div>
                                         </div>
-                                    </div>
                                     </div>
                                 </div>
                             </form>

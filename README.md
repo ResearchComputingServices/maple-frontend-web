@@ -59,6 +59,19 @@ $ yarn run dev
 
 ```
 
+## Setting Environment Variables for the app
+
+```bash
+# Create .env file and export following variables
+NEXTAUTH_SECRET=<Secret Value String>
+NEXTAUTH_URL=<URL of the Web App>
+
+# Create .env.development or .env.production file depending upon the web app environment and export following variables
+NEXT_PUBLIC_LOGIN_CODE=<CRYPTO SHA256 String>
+NEXT_PUBLIC_PWD_CODE=<CRYPTO SHA256 String>
+
+```
+
 ## License
 
 [MIT licensed](LICENSE).
