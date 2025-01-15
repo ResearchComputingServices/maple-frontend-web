@@ -20,7 +20,10 @@
       }
     ],
     // make all imports without a dot '.' prefix relative to the app directory
-    "baseUrl": "./src"
+    "baseUrl": "./src",
+    "paths": {
+      "@/providers/*": ["./provider/*"],
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

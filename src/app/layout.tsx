@@ -1,4 +1,5 @@
-import 'styles/theme.scss'
+import 'styles/theme.scss';
+import { NextAuthProvider } from '@/providers/NextAuthProvider';
 
 export const metadata = {
   title: 'RCS: Maple - RTPT',
@@ -7,7 +8,11 @@ export const metadata = {
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='en'>
-      <body>{children}</body>
+      <body>
+        <NextAuthProvider>
+          {children}
+        </NextAuthProvider>
+      </body>
     </html>
   )
 }
