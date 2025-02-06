@@ -29,6 +29,7 @@ export interface Configuration {
     max_bullet_points: number;
     model_iteration_persistence_days: number;
     spider_interval_seconds: number;
+    max_articles_per_model_iteration: number;
 }
 
 interface instanceOfReturn {
@@ -134,6 +135,8 @@ export interface BackEndProps {
     setModelIterationPersistanceDays: (value: string) => void,
     maxBulletPoints: string,
     setMaxBulletPoints: (value: string) => void,
+    maxArticlesPerModelIteration: string,
+    setMaxArticlesPerModelIteration: (value: string) => void,
 }
 
 

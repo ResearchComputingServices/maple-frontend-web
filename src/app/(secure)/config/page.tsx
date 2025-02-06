@@ -54,7 +54,8 @@ const Config = () => {
     const [maxBulletPoint, setmaxBulletPoint] = useState("");
     const [spiderIntervalSeconds, setSpiderIntervalSeconds] = useState("");
     const [modelIterationPersistanceDays, setModelIterationPersistanceDays] = useState("");
-
+    const [maxArticlesPerModelIteration, setMaxArticlesPerModelIteration] = useState("2000");
+    
     // ==== Post Config Details ====
     const onButtonClickUpdateConfig = async () => {
 
@@ -180,7 +181,7 @@ const Config = () => {
         sendConfig.max_bullet_points = parseInt(maxBulletPoint, 10);
         sendConfig.spider_interval_seconds = parseInt(spiderIntervalSeconds, 10);
         sendConfig.model_iteration_persistence_days = parseInt(modelIterationPersistanceDays, 10);
-
+        sendConfig.max_articles_per_model_iteration = parseInt(maxArticlesPerModelIteration, 10);
         return sendConfig;
     }
 
@@ -254,6 +255,7 @@ const Config = () => {
         setmaxBulletPoint(config.max_bullet_points.toString());
         setSpiderIntervalSeconds(config.spider_interval_seconds.toString());
         setModelIterationPersistanceDays(config.model_iteration_persistence_days.toString());
+        setMaxArticlesPerModelIteration(config.max_articles_per_model_iteration.toString());
     }
 
     async function fetchSetConfig() {
@@ -382,6 +384,8 @@ const Config = () => {
                                                     setSpiderIntervalSeconds: setSpiderIntervalSeconds, // TODO change
                                                     modelIterationPersistanceDays: modelIterationPersistanceDays, // TODO change
                                                     setModelIterationPersistanceDays: setModelIterationPersistanceDays, // TODO change
+                                                    maxArticlesPerModelIteration: maxArticlesPerModelIteration,
+                                                    setMaxArticlesPerModelIteration: setMaxArticlesPerModelIteration,
                                                 }}></BackEndConfig>
 
                                                 <Col xs={12}>
