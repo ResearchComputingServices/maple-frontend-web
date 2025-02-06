@@ -63,7 +63,7 @@ interface ReadableStreamResponse {
 
 
 export async function LLMServerBulletPoint({host, port, api_key, timeout, articles, model_type, prompt, max_tokens}: ArticleSummaryProps){
-    let options = buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
+    let options = await buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
     return axios.post(
         host + ":" + port + "/llm/bullet_point",
         {
@@ -84,7 +84,7 @@ export async function LLMServerBulletPoint({host, port, api_key, timeout, articl
 }
 
 export async function LLMServerTopicName({host, port, api_key, timeout, keywords, model_type, prompt, max_tokens}: TopicNameProps){
-    let options = buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
+    let options = await buildLLMServerConfig({host: host, port: port, api_key: api_key, timeout : timeout || defaultTimeout})
     return axios.post(
         host + ":" + port + "/llm/topic_name",
         {
@@ -105,7 +105,7 @@ export async function LLMServerTopicName({host, port, api_key, timeout, keywords
 }
 
 export async function testLLMServer({ host, port, api_key, timeout, model_type, question }: testLLMServerProps): Promise<AxiosResponse> {
-    let options = buildLLMServerConfig({ host: host, port: String(port), api_key: api_key, timeout: timeout || defaultTimeout })
+    let options = await buildLLMServerConfig({ host: host, port: String(port), api_key: api_key, timeout: timeout || defaultTimeout })
     
     return axios.post(
         host + ":" + port + "/llm/generate",

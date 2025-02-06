@@ -43,7 +43,7 @@ async function* fetchBulletPointResponse({ host, port, prompt, model_type, artic
 
 }
 
-export const makeStream = (generator: any) => {
+const makeStream = (generator: any) => {
     return new ReadableStream<any>({
         async pull(controller) {
             const { value, done } = await generator.next()

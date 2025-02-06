@@ -21,8 +21,8 @@ const handler = NextAuth({
         password: {},
       },
       async authorize(credentials, req) {
-        const username = credentials?.username;
-        const password = credentials?.password;
+        const username = credentials?.username || '';
+        const password = credentials?.password || '';
         // [TBD:Jaspal] Should be actual DB query if user database table exists
         const response = {
           rows: [{ id: '1001', email: 'johndoe@example.com' }],

@@ -1,11 +1,14 @@
-'use client';
+'use client'
 
-import { SessionProvider } from 'next-auth/react';
+import { SessionProvider } from 'next-auth/react'
+import { ReactNode, Suspense } from 'react'
 
 type Props = {
-  children?: React.ReactNode;
-};
+  children?: React.ReactNode
+}
 
 export const NextAuthProvider = ({ children }: Props) => (
-  <SessionProvider>{children}</SessionProvider>
-);
+  <SessionProvider>
+    <Suspense fallback={null}>{children}</Suspense>
+  </SessionProvider>
+)

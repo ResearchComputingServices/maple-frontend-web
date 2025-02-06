@@ -43,7 +43,7 @@ async function* fetchTopicNameResponse({ host, port, prompt, model_type, keyword
 
 }
 
-export const makeStream = (generator: any) => {
+const makeStream = (generator: any) => {
     return new ReadableStream<any>({
         async pull(controller) {
             const { value, done } = await generator.next()

@@ -1,7 +1,7 @@
 import React, { BaseSyntheticEvent, useEffect, useState } from "react";
 import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, OverlayTrigger, Row, Spinner, Tooltip } from "react-bootstrap";
 import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps, ModelType } from "app/_types/config.d";
-import { buildLLMServerConfig, LLMServerArticleSummary, LLMServerArticleSummaryStream, LLMServerBulletPoint, LLMServerTopicName, testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
+import { buildLLMServerConfig, LLMServerBulletPoint, LLMServerTopicName, testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
 import OpenAI from 'openai';
 import { BootstrapReboot, Bug, BugFill, EraserFill } from 'react-bootstrap-icons';
 import axios from "axios";
@@ -39,7 +39,7 @@ export function ModelPersonalizedQuestion(
     async function AnswerQuestion() {
         setLoadingAnswer(true)
         setAnswer('')
-        testLLMServer({ host: host!, port: Number(port), api_key: api_key, model_type: model!, question: question })
+        testLLMServer({ host: host!, port: String(port), api_key: api_key, model_type: model!, question: question })
             .then(response => {
                 console.log("response for question", response)
                 if (Array.isArray(response) && response.length > 0) {
