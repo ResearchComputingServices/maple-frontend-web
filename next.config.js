@@ -18,11 +18,11 @@ const nextConfig = {
   env: {
     WEB_SERVER_IP: "localhost:6010",
     PATH_URL_BACKEND_LOCAL: "http://localhost:6010/api/v1",
-    PATH_URL_BACKEND_REMOTE: "http://134.117.214.192/api/v1",
+    PATH_URL_BACKEND_REMOTE: "http://134.117.214.32/api/v1",
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['134.117.214.172'],
+      allowedOrigins: ['134.117.214.92'],
     },
   },
   publicRuntimeConfig: {

@@ -3,7 +3,7 @@ import { Button, Card, Col, Dropdown, DropdownItem, Form, InputGroup, Modal, Ove
 import { BackEndProps, DataModelProps, ModelChatGPTProps, ModelPersonalizedProps, ModelType } from "app/_types/config.d";
 import { buildLLMServerConfig, LLMServerArticleSummary, LLMServerArticleSummaryStream, LLMServerBulletPoint, LLMServerTopicName, testLLMServer, validateLLMServer } from "app/(secure)/config/validateServer";
 import OpenAI from 'openai';
-import { BootstrapReboot, Bug, BugFill, EraserFill} from 'react-bootstrap-icons';
+import { BootstrapReboot, Bug, BugFill, EraserFill } from 'react-bootstrap-icons';
 import axios from "axios";
 
 const sampleArticles: Array<string> = [
@@ -489,32 +489,33 @@ export interface LLMPrompts {
 export const defaultLLMPrompts: LLMPrompts = {
     gpt4all: {
         "prompt": "gpt4all " + defaultPrompt,
-        "summary": "gpt4all " + defaultSummaryPrompt,
-        "bulletPoint": "gpt4all " + defaultBulletPointPrompt,
-        "topicName": "gpt4all " + "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are an AI assistant to generate a term for a list of keywords. You provide a term between 1 and 3 words. You should not provide any description of the task or assumptions on how you got to the answer.<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\nKeywords: **keywords** <|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>",
+        "summary": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are an AI assistant to summarize an article in a maximum of 512 words. Do not include any description of the task. Do not include additional information. Stick to the facts. Your answer should include only the summary.<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\nArticle: **articles** <|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>",
+        "bulletPoint": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are an AI assistant to create a list of bullet points for a list of articles. Do not include any description of the task. Do not include additional information. Do not include an introduction such as \"here is the bullet points\". Do not include an explanation. Stick to the facts. Your answer should include only the the bullet points. Each bullet point should start with an asterisk, and contain a maximum of 50 words.<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\nArticles: **articles** <|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>",
+        "topicName": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are an AI assistant to generate a term for a list of keywords. You provide a term between 1 and 3 words. You should not provide any description of the task or assumptions on how you got to the answer.<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\nKeywords: **keywords** <|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>",
     },
     mistral: {
         "prompt": "mistral " + defaultPrompt,
-        "summary": "mistral " + defaultSummaryPrompt,
-        "bulletPoint": "mistral " + defaultBulletPointPrompt,
-        "topicName": "mistral " + defaultTopicNamePrompt,
+        "summary": "<s>[INST] You are an AI assistant to summarize an article in a maximum of 512 words. Do not include any description of the task. Do not include additional information. Stick to the facts. Your answer should include only the summary.\n\nArticle: **articles** [/INST]</s>",
+        "bulletPoint": "<s>[INST] You are an AI assistant to create a list of bullet points for a list of articles. Stick to the facts. Provide only the bullet points. Do not include an introduction such as \"here are the bullet points\". Each bullet point should start with asterisk. Each bullet point should contain a maximum of 50 words. Include a maximum of 5 bullet points.\nARTICLES: \n**articles** \n[/INST]</s>\n",
+        "topicName": "<s>[INST] You are an AI assistant to generate a term for a list of keywords. You should provide a term between 1 and 3 words. You should not provide any description of the task or assumptions on how you got to the answer.\nKEYWORDS: \n**keywords** \n[/INST]</s>"
     },
     chatgpt: {
-        "prompt": "chatgpt " + defaultPrompt,
-        "summary": "chatgpt " + defaultSummaryPrompt,
-        "bulletPoint": "chatgpt " + defaultBulletPointPrompt,
-        "topicName": "chatgpt " + defaultTopicNamePrompt,
+        "prompt": defaultPrompt,
+        "summary": defaultSummaryPrompt,
+        "bulletPoint": defaultBulletPointPrompt,
+        "topicName": defaultTopicNamePrompt,
     },
     default: {
-        "prompt": "default " + defaultPrompt,
-        "summary": "default " + defaultSummaryPrompt,
-        "bulletPoint": "default " + defaultBulletPointPrompt,
-        "topicName": "default " + defaultTopicNamePrompt,
+        "prompt": defaultPrompt,
+        "summary": defaultSummaryPrompt,
+        "bulletPoint": defaultBulletPointPrompt,
+        "topicName": defaultTopicNamePrompt,
     }
 }
 
 interface DataModelPromptProps {
     label: string
+    modelName: string,
     onValidation: () => void,
     validated: boolean,
     validating: boolean,
@@ -533,6 +534,7 @@ interface DataModelPromptProps {
 
 function DataModelPrompt({
     label,
+    modelName,
     onValidation,
     validated,
     validating,
@@ -547,8 +549,12 @@ function DataModelPrompt({
     onPromptErrorMessage,
     onContentErrorMessage,
     props }: DataModelPromptProps) {
-    
+
     const [showResponse, setShowResponse] = useState<boolean>(false)
+
+    useEffect(() => {
+        setValidated(false)
+    }, [modelName])
 
     function validatePrompt(e: BaseSyntheticEvent) {
         onValidation()
@@ -595,7 +601,7 @@ function DataModelPrompt({
     }
 
     useEffect(() => {
-        if (response ) {
+        if (response) {
             // if (response && validated) {
             setShowResponse(true)
         }
@@ -611,7 +617,7 @@ function DataModelPrompt({
                     <h5>{label}</h5>
                 </Form.Text>
                 {
-                    prompt && content && !validating?
+                    prompt && content && !validating ?
                         <BugFill
                             title="Debug prompt and content"
                             onClick={validatePrompt}
@@ -811,7 +817,7 @@ export function DataModelPrompts({
                 }
                 const reader = response.body!.getReader()
                 const decoder = new TextDecoder()
-                for (;;) {
+                for (; ;) {
                     const { done, value } = await reader.read()
                     if (done) {
                         break
@@ -832,7 +838,7 @@ export function DataModelPrompts({
                 setSummaryValidated(false)
             } finally {
                 setValidatingSummary(false) // TODO remove
-            } 
+            }
         }
         asyncSummaryValidation()
     }
@@ -868,7 +874,7 @@ export function DataModelPrompts({
                 }
                 const reader = response.body!.getReader()
                 const decoder = new TextDecoder()
-                for (;;) {
+                for (; ;) {
                     const { done, value } = await reader.read()
                     if (done) {
                         break
@@ -925,7 +931,7 @@ export function DataModelPrompts({
                 }
                 const reader = response.body!.getReader()
                 const decoder = new TextDecoder()
-                for (;;) {
+                for (; ;) {
                     const { done, value } = await reader.read()
                     if (done) {
                         break
@@ -947,7 +953,7 @@ export function DataModelPrompts({
             } finally {
                 setValidatingTopicName(false) // TODO remove
             }
-            
+
         }
         asyncTopicNameValidation()
     }
@@ -956,15 +962,15 @@ export function DataModelPrompts({
         setValidating(
             Array.from(
                 [validatingSummary, validatingBulletPoint, validatingTopicName]
-            ).some((v)=>v)
+            ).some((v) => v)
         )
-    },[validatingSummary,validatingBulletPoint,validatingTopicName])
+    }, [validatingSummary, validatingBulletPoint, validatingTopicName])
 
     // Enable validation of prompts only when all prompts and content are filled
     useEffect(() => {
-        
+
         if (validating) {
-            setValidateAllEnabled(false )
+            setValidateAllEnabled(false)
         } else {
             setValidateAllEnabled([
                 summaryPrompt,
@@ -975,7 +981,7 @@ export function DataModelPrompts({
                 topicNameContent,
             ].filter(v => v === "").length === 0)
         }
-       
+
     }, [
         validating,
         summaryPrompt,
@@ -1009,6 +1015,7 @@ export function DataModelPrompts({
             setAllValidated(false)
         }
     }, [summaryValidated, bulletPointValidated, topicNameValidated])
+
 
     // Update default prompts depending on the model type and model name
     useEffect(() => {
@@ -1067,6 +1074,7 @@ export function DataModelPrompts({
 
         <DataModelPrompt
             label="Summary"
+            modelName={modelName}
             onValidation={summaryValidation}
             validated={summaryValidated}
             setValidated={setSummaryValidated}
@@ -1080,11 +1088,12 @@ export function DataModelPrompts({
             response={summaryResponse}
             onPromptErrorMessage="Summary prompt is required."
             onContentErrorMessage="Content sample is required. Expected a string with one News article."
-            props={{...iconProps}}
+            props={{ ...iconProps }}
         />
 
         <DataModelPrompt
             label="Bullet point summary"
+            modelName={modelName}
             onValidation={bulletPointValidation}
             validated={bulletPointValidated}
             setValidated={setBulletPointValidated}
@@ -1103,6 +1112,7 @@ export function DataModelPrompts({
 
         <DataModelPrompt
             label="Topic Name"
+            modelName={modelName}
             onValidation={topicNameValidation}
             validated={topicNameValidated}
             setValidated={setTopicNameValidated}
@@ -1342,6 +1352,43 @@ export function BackEndConfig({ props }: { props: BackEndProps }) {
                                     />
                                     <Form.Control.Feedback type="invalid">
                                         The interval should be between 20 and 10800 seconds (3 hours).
+                                    </Form.Control.Feedback>
+                                </InputGroup>
+                            </Form.Group>
+                        </Col>
+                    </Row>
+
+                    {/* Number of articles per model Iteration */}
+                    <Row className="mb-3">
+                        <Col xl={3} lg={3} md={3} xs={12} className="mb-3 mb-lg-0">
+                            <OverlayTrigger overlay={
+                                <Tooltip>
+                                    <p>
+                                        The maximum number of articles to be classified per model iteration. </p>
+                                </Tooltip>
+                            }>
+                                <Form.Label>
+                                    <h5>
+                                        Maximum # of articles per Model Iteration <span style={{ color: "red" }}>*</span>
+                                    </h5>
+                                </Form.Label>
+                            </OverlayTrigger>
+                        </Col>
+                        <Col xl={9} lg={9} md={9} xs={12} className="mb-3 mb-lg-0">
+                            <Form.Group>
+                                <InputGroup hasValidation>
+                                    <Form.Control
+                                        type="number"
+                                        placeholder="Spider interval"
+                                        id="max_articles_per_model_iteration"
+                                        value={props.maxArticlesPerModelIteration}
+                                        onChange={(e) => props.setMaxArticlesPerModelIteration(e.target.value)}
+                                        isInvalid={Number(props.maxArticlesPerModelIteration) < 2000}
+                                        min={2000}
+                                        required
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        The interval should be greater or equal to 2000 articles.
                                     </Form.Control.Feedback>
                                 </InputGroup>
                             </Form.Group>
