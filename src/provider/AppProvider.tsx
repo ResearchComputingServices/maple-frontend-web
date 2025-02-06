@@ -262,6 +262,7 @@ export default function AppProvider({ children }: ReactChildren) {
 
     const id = setInterval(async function () {
       // const _modelType = await searchModelType()
+      console.log('fetching model_iteration')
       const _modelIteration = await searchModelIteration()
 
 

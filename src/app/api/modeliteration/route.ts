@@ -5,7 +5,7 @@ export async function GET() {
     headers: {
       'Content-Type': 'application/json',
     },
-    next: { revalidate: 3600 },
+    next: { revalidate: 60 },
   })
   const result = await res.json()
   console.log(">> app-api-modeliteration:", result)
